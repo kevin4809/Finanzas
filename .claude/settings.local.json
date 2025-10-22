@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm run build:*)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(dir:*)",
+      "Bash(taskkill:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(curl:*)",
+      "Bash(Remove-Item -Path '.next' -Recurse -Force -ErrorAction SilentlyContinue)",
+      "Bash(timeout 5 echo:*)",
+      "Bash(timeout:*)",
+      "Bash(netstat:*)",
+      "Bash(npm install:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
