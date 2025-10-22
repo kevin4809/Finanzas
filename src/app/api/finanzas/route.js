@@ -5,8 +5,14 @@ import { getCollection } from '@/lib/mongodb';
 // Obtener los datos financieros de un año específico
 export async function GET(request) {
   try {
+    console.log('[API GET] Iniciando petición para obtener datos');
+    console.log('[API GET] MONGODB_URI existe:', !!process.env.MONGODB_URI);
+    console.log('[API GET] MONGODB_DB:', process.env.MONGODB_DB);
+
     const { searchParams } = new URL(request.url);
     const anio = parseInt(searchParams.get('anio'));
+
+    console.log('[API GET] Año solicitado:', anio);
 
     if (!anio || isNaN(anio)) {
       return NextResponse.json(
@@ -15,19 +21,36 @@ export async function GET(request) {
       );
     }
 
+    console.log('[API GET] Conectando a MongoDB...');
     const collection = await getCollection('finanzas');
+    console.log('[API GET] Conexión exitosa, buscando datos...');
+
     const datos = await collection.findOne({ anio });
+    console.log('[API GET] Datos encontrados:', datos ? 'SÍ' : 'NO');
+
+    if (datos) {
+      console.log('[API GET] Cantidad de meses:', datos.meses?.length);
+    }
 
     if (!datos) {
       // Si no existe el año, devolver null para que el cliente cree la estructura inicial
+      console.log('[API GET] No hay datos, retornando null');
       return NextResponse.json({ anio, datos: null });
     }
 
+    console.log('[API GET] Retornando datos exitosamente');
     return NextResponse.json({ anio, datos: datos.meses });
   } catch (error) {
-    console.error('Error al obtener datos de MongoDB:', error);
+    console.error('[API GET] ERROR COMPLETO:', error);
+    console.error('[API GET] Error stack:', error.stack);
+    console.error('[API GET] Error name:', error.name);
+    console.error('[API GET] Error message:', error.message);
     return NextResponse.json(
-      { error: 'Error al obtener los datos financieros' },
+      {
+        error: 'Error al obtener los datos financieros',
+        details: error.message,
+        name: error.name
+      },
       { status: 500 }
     );
   }

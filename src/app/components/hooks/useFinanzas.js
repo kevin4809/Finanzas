@@ -46,15 +46,27 @@ export const useFinanzas = () => {
   // Cargar años disponibles desde MongoDB
   const cargarAniosDisponibles = async () => {
     try {
+      console.log('[HOOK] Cargando años disponibles...');
       const response = await fetch('/api/finanzas/anios');
+      console.log('[HOOK] Response status:', response.status);
+
       const data = await response.json();
+      console.log('[HOOK] Data recibida:', data);
+
+      if (data.error) {
+        console.error('[HOOK] Error en respuesta:', data.error, data.details);
+        return [];
+      }
+
       if (data.anios && data.anios.length > 0) {
+        console.log('[HOOK] Años disponibles:', data.anios);
         setAniosDisponiblesDB(data.anios);
         return data.anios;
       }
+      console.log('[HOOK] No hay años disponibles');
       return [];
     } catch (error) {
-      console.error('Error al cargar años disponibles:', error);
+      console.error('[HOOK] Error al cargar años disponibles:', error);
       return [];
     }
   };
@@ -62,11 +74,27 @@ export const useFinanzas = () => {
   // Cargar datos de un año desde MongoDB
   const cargarDatosAnio = async (anio) => {
     try {
+      console.log('[HOOK] Cargando datos para año:', anio);
       const response = await fetch(`/api/finanzas?anio=${anio}`);
+      console.log('[HOOK] Response status:', response.status);
+
       const data = await response.json();
+      console.log('[HOOK] Data recibida para año', anio, ':', data);
+
+      if (data.error) {
+        console.error('[HOOK] Error en respuesta:', data.error, data.details);
+        // En caso de error, crear estructura inicial
+        const nuevaEstructura = crearEstructuraAnio(anio);
+        setDatosAnios((prev) => ({
+          ...prev,
+          [anio]: nuevaEstructura,
+        }));
+        return false;
+      }
 
       if (data.datos && data.datos.length > 0) {
         // Datos encontrados en MongoDB
+        console.log('[HOOK] Datos encontrados, cargando...');
         setDatosAnios((prev) => ({
           ...prev,
           [anio]: { anio, meses: data.datos },
@@ -74,6 +102,7 @@ export const useFinanzas = () => {
         return true;
       } else {
         // No hay datos, crear estructura inicial
+        console.log('[HOOK] No hay datos, creando estructura inicial');
         const nuevaEstructura = crearEstructuraAnio(anio);
         setDatosAnios((prev) => ({
           ...prev,
@@ -82,7 +111,7 @@ export const useFinanzas = () => {
         return false;
       }
     } catch (error) {
-      console.error('Error al cargar datos del año:', error);
+      console.error('[HOOK] Error al cargar datos del año:', error);
       // En caso de error, crear estructura inicial
       setDatosAnios((prev) => ({
         ...prev,
