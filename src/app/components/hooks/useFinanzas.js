@@ -9,6 +9,7 @@ const ESTRUCTURA_QUINCENA_INICIAL = {
   obligaciones: [],
   gastosPersonales: [],
   // ahorro se calcula automáticamente, no se guarda
+  version: 2, // v2 incluye categorías
 };
 
 const crearEstructuraAnio = (anio) => ({
@@ -28,6 +29,36 @@ const crearEstructuraAnio = (anio) => ({
     },
   })),
 });
+
+// Función para migrar una quincena agregando categorías a items sin categoría
+const migrarQuincena = (quincena) => {
+  if (!quincena) return quincena;
+
+  return {
+    ...quincena,
+    obligaciones: quincena.obligaciones.map(item => ({
+      ...item,
+      categoria: item.categoria || 'otros' // default si no tiene
+    })),
+    gastosPersonales: quincena.gastosPersonales.map(item => ({
+      ...item,
+      categoria: item.categoria || 'otros' // default si no tiene
+    }))
+  };
+};
+
+// Función para migrar datos sin categoría (backward compatibility)
+const migrarDatosConCategorias = (meses) => {
+  if (!meses || !Array.isArray(meses)) return meses;
+
+  return meses.map(mes => ({
+    ...mes,
+    datosQuincenales: {
+      quincena1: migrarQuincena(mes.datosQuincenales?.quincena1),
+      quincena2: migrarQuincena(mes.datosQuincenales?.quincena2)
+    }
+  }));
+};
 
 export const useFinanzas = () => {
   // Estados
@@ -95,9 +126,11 @@ export const useFinanzas = () => {
       if (data.datos && data.datos.length > 0) {
         // Datos encontrados en MongoDB
         console.log('[HOOK] Datos encontrados, cargando...');
+        // Aplicar migración automática para agregar categorías
+        const mesesMigrados = migrarDatosConCategorias(data.datos);
         setDatosAnios((prev) => ({
           ...prev,
-          [anio]: { anio, meses: data.datos },
+          [anio]: { anio, meses: mesesMigrados },
         }));
         return true;
       } else {
@@ -238,7 +271,11 @@ export const useFinanzas = () => {
       mes.datosQuincenales = { ...mes.datosQuincenales };
       mes.datosQuincenales[quincena] = { ...mes.datosQuincenales[quincena] };
       mes.datosQuincenales[quincena][categoria] = [...mes.datosQuincenales[quincena][categoria]];
-      mes.datosQuincenales[quincena][categoria].push({ concepto, monto: 0 });
+      mes.datosQuincenales[quincena][categoria].push({
+        concepto,
+        monto: 0,
+        categoria: 'otros' // categoría default
+      });
       anio.meses[mesSeleccionado] = mes;
       return { ...prev, [anioSeleccionado]: anio };
     });
@@ -269,6 +306,23 @@ export const useFinanzas = () => {
       mes.datosQuincenales[quincena][categoria][index] = {
         ...mes.datosQuincenales[quincena][categoria][index],
         concepto: nuevoConcepto,
+      };
+      anio.meses[mesSeleccionado] = mes;
+      return { ...prev, [anioSeleccionado]: anio };
+    });
+  };
+
+  const actualizarCategoria = (quincena, categoria, index, nuevaCategoria) => {
+    setDatosAnios((prev) => {
+      const anio = { ...prev[anioSeleccionado] };
+      anio.meses = [...anio.meses];
+      const mes = { ...anio.meses[mesSeleccionado] };
+      mes.datosQuincenales = { ...mes.datosQuincenales };
+      mes.datosQuincenales[quincena] = { ...mes.datosQuincenales[quincena] };
+      mes.datosQuincenales[quincena][categoria] = [...mes.datosQuincenales[quincena][categoria]];
+      mes.datosQuincenales[quincena][categoria][index] = {
+        ...mes.datosQuincenales[quincena][categoria][index],
+        categoria: nuevaCategoria,
       };
       anio.meses[mesSeleccionado] = mes;
       return { ...prev, [anioSeleccionado]: anio };
@@ -450,6 +504,7 @@ export const useFinanzas = () => {
     actualizarMontoQuincenal,
     // actualizarAhorroQuincenal eliminado - ahorro es automático
     actualizarConcepto,
+    actualizarCategoria,
     agregarItem,
     eliminarItem,
     formatCOP,

@@ -8,6 +8,7 @@ export default function FormularioQuincena({
   onActualizarIngreso,
   onActualizarMonto,
   onActualizarConcepto,
+  onActualizarCategoria,
   onAgregarItem,
   onEliminarItem,
   // onActualizarAhorro eliminado - ahorro es automático
@@ -42,10 +43,12 @@ export default function FormularioQuincena({
         items={datos.obligaciones}
         onCambioMonto={(idx, valor) => onActualizarMonto('obligaciones', idx, valor)}
         onCambioConcepto={(idx, valor) => onActualizarConcepto('obligaciones', idx, valor)}
+        onCambioCategoria={(idx, valor) => onActualizarCategoria('obligaciones', idx, valor)}
         onAgregar={(concepto) => onAgregarItem('obligaciones', concepto)}
         onEliminar={(idx) => onEliminarItem('obligaciones', idx)}
         colorClase='bg-red-50'
         formatCOP={formatCOP}
+        tipoCategoria='obligaciones'
       />
 
       <SeccionGastos
@@ -53,10 +56,12 @@ export default function FormularioQuincena({
         items={datos.gastosPersonales}
         onCambioMonto={(idx, valor) => onActualizarMonto('gastosPersonales', idx, valor)}
         onCambioConcepto={(idx, valor) => onActualizarConcepto('gastosPersonales', idx, valor)}
+        onCambioCategoria={(idx, valor) => onActualizarCategoria('gastosPersonales', idx, valor)}
         onAgregar={(concepto) => onAgregarItem('gastosPersonales', concepto)}
         onEliminar={(idx) => onEliminarItem('gastosPersonales', idx)}
         colorClase='bg-orange-50'
         formatCOP={formatCOP}
+        tipoCategoria='gastosPersonales'
       />
 
       <div className='bg-green-50 p-4 rounded-lg border-2 border-green-300'>

@@ -9,6 +9,7 @@ export default function DetalleQuincenal({
   onActualizarIngresoQuincenal,
   onActualizarMontoQuincenal,
   onActualizarConceptoQuincenal,
+  onActualizarCategoriaQuincenal,
   onAgregarItemQuincenal,
   onEliminarItemQuincenal,
   // onActualizarAhorroQuincenal eliminado - ahorro es automático
@@ -36,6 +37,14 @@ export default function DetalleQuincenal({
 
   const handleActualizarConceptoQ2 = (categoria, idx, valor) => {
     onActualizarConceptoQuincenal('quincena2', categoria, idx, valor);
+  };
+
+  const handleActualizarCategoriaQ1 = (categoria, idx, valor) => {
+    onActualizarCategoriaQuincenal('quincena1', categoria, idx, valor);
+  };
+
+  const handleActualizarCategoriaQ2 = (categoria, idx, valor) => {
+    onActualizarCategoriaQuincenal('quincena2', categoria, idx, valor);
   };
 
   const handleAgregarItemQ1 = (categoria, concepto) => {
@@ -83,6 +92,7 @@ export default function DetalleQuincenal({
           onActualizarIngreso={(valor) => onActualizarIngresoQuincenal('quincena1', valor)}
           onActualizarMonto={handleActualizarMontoQ1}
           onActualizarConcepto={handleActualizarConceptoQ1}
+          onActualizarCategoria={handleActualizarCategoriaQ1}
           onAgregarItem={handleAgregarItemQ1}
           onEliminarItem={handleEliminarItemQ1}
           formatCOP={formatCOP}
@@ -94,6 +104,7 @@ export default function DetalleQuincenal({
           onActualizarIngreso={(valor) => onActualizarIngresoQuincenal('quincena2', valor)}
           onActualizarMonto={handleActualizarMontoQ2}
           onActualizarConcepto={handleActualizarConceptoQ2}
+          onActualizarCategoria={handleActualizarCategoriaQ2}
           onAgregarItem={handleAgregarItemQ2}
           onEliminarItem={handleEliminarItemQ2}
           formatCOP={formatCOP}

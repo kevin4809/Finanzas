@@ -26,6 +26,7 @@ const ControlFinanciero = () => {
     actualizarIngresoQuincenal,
     actualizarMontoQuincenal,
     actualizarConcepto,
+    actualizarCategoria,
     agregarItem,
     eliminarItem,
     formatCOP,
@@ -136,13 +137,14 @@ const ControlFinanciero = () => {
           onActualizarIngresoQuincenal={actualizarIngresoQuincenal}
           onActualizarMontoQuincenal={actualizarMontoQuincenal}
           onActualizarConceptoQuincenal={actualizarConcepto}
+          onActualizarCategoriaQuincenal={actualizarCategoria}
           onAgregarItemQuincenal={agregarItem}
           onEliminarItemQuincenal={eliminarItem}
           formatCOP={formatCOP}
         />
       )}
 
-      {activeSheet === 'analisis' && <AnalisisAnual datosResumen={datosResumen} formatCOP={formatCOP} />}
+      {activeSheet === 'analisis' && <AnalisisAnual datosResumen={datosResumen} formatCOP={formatCOP} anioSeleccionado={anioSeleccionado} />}
     </div>
   );
 };

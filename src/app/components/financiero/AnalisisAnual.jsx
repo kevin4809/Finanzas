@@ -1,10 +1,30 @@
-export default function AnalisisAnual({ datosResumen, formatCOP }) {
-  // Determinar el mes actual del año (0-11) y calcular meses transcurridos
-  const mesActual = new Date().getMonth();
-  const mesesTranscurridos = mesActual + 1;
+import AnalisisPorCategorias from './AnalisisPorCategorias';
+import EvolucionMensual from './graficos/EvolucionMensual';
 
-  // Filtrar solo los meses que ya han pasado
-  const datosReales = datosResumen.slice(0, mesesTranscurridos);
+export default function AnalisisAnual({ datosResumen, formatCOP, anioSeleccionado }) {
+  // Determinar el año actual del sistema
+  const fechaActual = new Date();
+  const anioActual = fechaActual.getFullYear();
+  const mesActualDelSistema = fechaActual.getMonth();
+
+  // Calcular meses transcurridos según el año que se está visualizando
+  let mesesTranscurridos;
+  let datosReales;
+
+  if (anioSeleccionado < anioActual) {
+    // Año pasado: mostrar todos los 12 meses
+    mesesTranscurridos = 12;
+    datosReales = datosResumen;
+  } else if (anioSeleccionado === anioActual) {
+    // Año actual: mostrar solo los meses transcurridos
+    mesesTranscurridos = mesActualDelSistema + 1;
+    datosReales = datosResumen.slice(0, mesesTranscurridos);
+  } else {
+    // Año futuro: no mostrar datos (o mostrar solo lo que hay)
+    mesesTranscurridos = 0;
+    datosReales = [];
+  }
+
   const mesesRestantes = 12 - mesesTranscurridos;
 
   // Totales anuales (solo meses transcurridos)
@@ -82,17 +102,17 @@ export default function AnalisisAnual({ datosResumen, formatCOP }) {
   const categorias = [
     {
       nombre: 'Obligaciones',
-      valor: totalObligaciones / 12,
+      valor: mesesTranscurridos > 0 ? totalObligaciones / mesesTranscurridos : 0,
       color: 'bg-red-500',
     },
     {
       nombre: 'Gastos Personales',
-      valor: totalGastosPersonales / 12,
+      valor: mesesTranscurridos > 0 ? totalGastosPersonales / mesesTranscurridos : 0,
       color: 'bg-orange-500',
     },
     {
       nombre: 'Ahorro',
-      valor: totalAhorrado / 12,
+      valor: mesesTranscurridos > 0 ? totalAhorrado / mesesTranscurridos : 0,
       color: 'bg-green-500',
     },
   ];
@@ -270,64 +290,11 @@ export default function AnalisisAnual({ datosResumen, formatCOP }) {
         </div>
       </div>
 
-      {/* Gráfico de evolución mensual */}
-      <div className='bg-white p-6 rounded-lg border border-gray-200 shadow-sm'>
-        <h3 className='font-bold text-xl mb-4 text-black'>📊 Evolución Mensual del Ahorro</h3>
-        <p className='text-sm text-gray-600 mb-4'>Mostrando {mesesTranscurridos} {mesesTranscurridos === 1 ? 'mes transcurrido' : 'meses transcurridos'} de 12</p>
-        <div className='relative'>
-          {/* Eje Y (valores) */}
-          <div className='flex gap-2 h-64'>
-            {datosReales.map((mes, idx) => {
-              const maxAhorro = Math.max(...datosReales.map(m => Math.abs(m.ahorroEnCuenta)));
-              const altura = maxAhorro > 0 ? (Math.abs(mes.ahorroEnCuenta) / maxAhorro) * 100 : 0;
-              const esPositivo = mes.ahorroEnCuenta >= 0;
+      {/* Gráfico de evolución mensual - Recharts */}
+      <EvolucionMensual datosResumen={datosReales} formatCOP={formatCOP} mesesTranscurridos={mesesTranscurridos} />
 
-              return (
-                <div key={idx} className='flex-1 flex flex-col justify-end items-center'>
-                  <div className='relative w-full flex flex-col justify-end' style={{ height: '100%' }}>
-                    {/* Línea de referencia cero */}
-                    <div className='absolute bottom-0 w-full h-px bg-gray-400'></div>
-                    {/* Barra */}
-                    <div
-                      className={`w-full rounded-t transition-all ${esPositivo ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}
-                      style={{ height: `${altura}%` }}
-                      title={`${mes.mes}: ${formatCOP(mes.ahorroEnCuenta)}`}
-                    ></div>
-                  </div>
-                  <p className='text-xs mt-2 text-gray-600 transform -rotate-45 origin-top-left'>{mes.mes.slice(0, 3)}</p>
-                </div>
-              );
-            })}
-            {/* Mostrar meses futuros en gris (sin datos) */}
-            {mesesRestantes > 0 && Array.from({ length: mesesRestantes }).map((_, idx) => {
-              const mesIdx = mesesTranscurridos + idx;
-              return (
-                <div key={`futuro-${idx}`} className='flex-1 flex flex-col justify-end items-center opacity-30'>
-                  <div className='relative w-full flex flex-col justify-end' style={{ height: '100%' }}>
-                    <div className='absolute bottom-0 w-full h-px bg-gray-400'></div>
-                    <div className='w-full h-2 rounded-t bg-gray-300'></div>
-                  </div>
-                  <p className='text-xs mt-2 text-gray-400 transform -rotate-45 origin-top-left'>{datosResumen[mesIdx]?.mes.slice(0, 3) || ''}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        <div className='mt-4 flex justify-center gap-6 text-sm'>
-          <div className='flex items-center gap-2'>
-            <div className='w-4 h-4 bg-green-500 rounded'></div>
-            <span className='text-gray-600'>Ahorro Positivo</span>
-          </div>
-          <div className='flex items-center gap-2'>
-            <div className='w-4 h-4 bg-red-500 rounded'></div>
-            <span className='text-gray-600'>Ahorro Negativo</span>
-          </div>
-          <div className='flex items-center gap-2'>
-            <div className='w-4 h-4 bg-gray-300 rounded'></div>
-            <span className='text-gray-400'>Meses futuros</span>
-          </div>
-        </div>
-      </div>
+      {/* Análisis por Categorías */}
+      <AnalisisPorCategorias datosResumen={datosReales} formatCOP={formatCOP} />
     </div>
   );
 }

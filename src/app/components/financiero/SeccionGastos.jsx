@@ -1,19 +1,23 @@
 import { useState } from 'react';
 import { Trash2, Plus } from 'lucide-react';
 import InputNumero from './InputNumero';
+import { obtenerCategoriasPorTipo } from '@/constants/categorias';
 
 export default function SeccionGastos({
   titulo,
   items,
   onCambioMonto,
   onCambioConcepto,
+  onCambioCategoria,
   onAgregar,
   onEliminar,
   colorClase,
-  formatCOP
+  formatCOP,
+  tipoCategoria = 'gastosPersonales'
 }) {
   const [nuevoConcepto, setNuevoConcepto] = useState('');
   const total = items.reduce((sum, item) => sum + item.monto, 0);
+  const categorias = obtenerCategoriasPorTipo(tipoCategoria);
 
   const handleAgregar = () => {
     if (nuevoConcepto.trim()) {
@@ -28,13 +32,27 @@ export default function SeccionGastos({
 
       {items.map((item, idx) => (
         <div key={idx} className='flex flex-col sm:flex-row justify-between items-stretch sm:items-center mb-3 sm:mb-2 gap-2'>
-          <input
-            type='text'
-            value={item.concepto}
-            onChange={(e) => onCambioConcepto(idx, e.target.value)}
-            className='flex-1 p-2 border rounded text-black text-sm sm:text-base'
-            placeholder='Concepto'
-          />
+          <div className='flex flex-col sm:flex-row gap-2 flex-1'>
+            <select
+              value={item.categoria || 'otros'}
+              onChange={(e) => onCambioCategoria && onCambioCategoria(idx, e.target.value)}
+              className='p-2 border rounded text-black text-sm sm:text-base sm:w-40'
+              title='Categoría'
+            >
+              {Object.entries(categorias).map(([key, cat]) => (
+                <option key={key} value={key}>
+                  {cat.icono} {cat.nombre}
+                </option>
+              ))}
+            </select>
+            <input
+              type='text'
+              value={item.concepto}
+              onChange={(e) => onCambioConcepto(idx, e.target.value)}
+              className='flex-1 p-2 border rounded text-black text-sm sm:text-base'
+              placeholder='Concepto'
+            />
+          </div>
           <div className='flex items-center gap-2'>
             <InputNumero
               valor={item.monto}
