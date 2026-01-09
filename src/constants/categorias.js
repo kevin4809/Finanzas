@@ -45,6 +45,16 @@ export const CATEGORIAS_GASTOS = {
     icono: "💼",
     color: "#0891b2"
   },
+  moto: {
+    nombre: "Moto",
+    icono: "🏍️",
+    color: "#7c3aed"
+  },
+  ahorros: {
+    nombre: "Ahorros",
+    icono: "🐖",
+    color: "#059669"
+  },
   otros: {
     nombre: "Otros",
     icono: "💰",
@@ -108,6 +118,16 @@ export const CATEGORIAS_OBLIGACIONES = {
     nombre: "Trabajo",
     icono: "💼",
     color: "#0891b2"
+  },
+  moto: {
+    nombre: "Moto",
+    icono: "🏍️",
+    color: "#7c3aed"
+  },
+  ahorros: {
+    nombre: "Ahorros",
+    icono: "🐖",
+    color: "#059669"
   },
   otros: {
     nombre: "Otros",
