@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import FormularioQuincena from './FormularioQuincena';
 import VistaRapidaMontos from './VistaRapidaMontos';
+import AnalisisMesQuincenal from './AnalisisMesQuincenal';
 
 export default function DetalleQuincenal({
   mesSeleccionado,
@@ -14,9 +15,10 @@ export default function DetalleQuincenal({
   onActualizarIngresoQuincenal,
   onActualizarMontoQuincenal,
   onActualizarConceptoQuincenal,
+  onActualizarCategoriaQuincenal,
   onAgregarItemQuincenal,
   onEliminarItemQuincenal,
-  onToggleRecurrenteQuincenal,
+  datosResumen,
   formatCOP,
 }) {
   const [vistaRapida, setVistaRapida] = useState(false);
@@ -44,12 +46,20 @@ export default function DetalleQuincenal({
     onActualizarConceptoQuincenal('quincena2', categoria, idx, valor);
   };
 
-  const handleAgregarItemQ1 = (categoria, concepto, recurrente, monto) => {
-    onAgregarItemQuincenal('quincena1', categoria, concepto, recurrente, monto);
+  const handleActualizarCategoriaQ1 = (categoria, idx, valor) => {
+    onActualizarCategoriaQuincenal('quincena1', categoria, idx, valor);
   };
 
-  const handleAgregarItemQ2 = (categoria, concepto, recurrente, monto) => {
-    onAgregarItemQuincenal('quincena2', categoria, concepto, recurrente, monto);
+  const handleActualizarCategoriaQ2 = (categoria, idx, valor) => {
+    onActualizarCategoriaQuincenal('quincena2', categoria, idx, valor);
+  };
+
+  const handleAgregarItemQ1 = (categoria, concepto, monto, categoriaItem) => {
+    onAgregarItemQuincenal('quincena1', categoria, concepto, monto, categoriaItem);
+  };
+
+  const handleAgregarItemQ2 = (categoria, concepto, monto, categoriaItem) => {
+    onAgregarItemQuincenal('quincena2', categoria, concepto, monto, categoriaItem);
   };
 
   const handleEliminarItemQ1 = (categoria, idx) => {
@@ -58,14 +68,6 @@ export default function DetalleQuincenal({
 
   const handleEliminarItemQ2 = (categoria, idx) => {
     onEliminarItemQuincenal('quincena2', categoria, idx);
-  };
-
-  const handleToggleRecurrenteQ1 = (categoria, idx, recurrente) => {
-    onToggleRecurrenteQuincenal('quincena1', categoria, idx, recurrente);
-  };
-
-  const handleToggleRecurrenteQ2 = (categoria, idx, recurrente) => {
-    onToggleRecurrenteQuincenal('quincena2', categoria, idx, recurrente);
   };
 
   return (
@@ -113,7 +115,7 @@ export default function DetalleQuincenal({
           formatCOP={formatCOP}
         />
       ) : (
-        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0'>
           <FormularioQuincena
             numQuincena={1}
             mesNombre={meses[mesSeleccionado]}
@@ -122,9 +124,9 @@ export default function DetalleQuincenal({
             onActualizarIngreso={(valor) => onActualizarIngresoQuincenal('quincena1', valor)}
             onActualizarMonto={handleActualizarMontoQ1}
             onActualizarConcepto={handleActualizarConceptoQ1}
+            onActualizarCategoria={handleActualizarCategoriaQ1}
             onAgregarItem={handleAgregarItemQ1}
             onEliminarItem={handleEliminarItemQ1}
-            onToggleRecurrente={handleToggleRecurrenteQ1}
             formatCOP={formatCOP}
           />
           <FormularioQuincena
@@ -135,13 +137,21 @@ export default function DetalleQuincenal({
             onActualizarIngreso={(valor) => onActualizarIngresoQuincenal('quincena2', valor)}
             onActualizarMonto={handleActualizarMontoQ2}
             onActualizarConcepto={handleActualizarConceptoQ2}
+            onActualizarCategoria={handleActualizarCategoriaQ2}
             onAgregarItem={handleAgregarItemQ2}
             onEliminarItem={handleEliminarItemQ2}
-            onToggleRecurrente={handleToggleRecurrenteQ2}
             formatCOP={formatCOP}
           />
         </div>
       )}
+
+      <AnalisisMesQuincenal
+        mesNombre={meses[mesSeleccionado]}
+        mesSeleccionado={mesSeleccionado}
+        datosQuincenales={datosQuincenales}
+        datosResumen={datosResumen}
+        formatCOP={formatCOP}
+      />
     </div>
   );
 }

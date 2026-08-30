@@ -367,6 +367,157 @@ body {
     opacity: 0.6;
   }
 
+  /* Expense rows — responsive via container queries */
+  .gastos-panel {
+    container-type: inline-size;
+  }
+
+  .gastos-header {
+    display: none;
+    grid-template-columns: 7rem minmax(0, 1fr) 6.25rem 4.5rem;
+    gap: 0.5rem;
+    padding: 0 0.25rem 0.5rem;
+    margin-bottom: 0.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .gastos-header span {
+    @apply text-[10px] font-bold uppercase tracking-wider;
+    color: var(--foreground);
+    opacity: 0.45;
+  }
+
+  .gastos-header span:nth-child(3),
+  .gastos-header span:nth-child(4) {
+    text-align: right;
+  }
+
+  .gasto-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding: 0.625rem 0.25rem;
+    border-bottom: 1px solid var(--border);
+    transition: background-color 0.15s ease;
+  }
+
+  .gasto-row:hover {
+    background: var(--surface-muted);
+    border-radius: 0.75rem;
+  }
+
+  .gasto-row-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    min-width: 0;
+  }
+
+  .gasto-row-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .gasto-actions {
+    @apply flex items-center gap-0.5 shrink-0;
+  }
+
+  .gasto-icon-btn {
+    @apply p-1.5 rounded-lg transition-colors duration-150;
+    color: var(--foreground);
+    opacity: 0.45;
+  }
+
+  .gasto-icon-btn:hover {
+    opacity: 1;
+    background: var(--surface-muted);
+  }
+
+  .gasto-icon-btn.is-active {
+    @apply text-indigo-500 dark:text-indigo-400;
+    opacity: 1;
+    background: rgba(99, 102, 241, 0.12);
+  }
+
+  .gasto-icon-btn.is-danger:hover {
+    @apply text-rose-500 dark:text-rose-400;
+    background: rgba(244, 63, 94, 0.1);
+  }
+
+  .input-compact {
+    @apply px-2.5 py-1.5 rounded-lg outline-none transition-all duration-200 text-sm;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    min-width: 0;
+  }
+
+  .input-compact:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-glow);
+  }
+
+  .gasto-add-panel {
+    @apply mt-3 rounded-xl p-3;
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+  }
+
+  @container (min-width: 540px) {
+    .gastos-header {
+      display: grid;
+    }
+
+    .gasto-row {
+      display: grid;
+      grid-template-columns: 7rem minmax(0, 1fr) 6.25rem 4.5rem;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.375rem 0.25rem;
+    }
+
+    .gasto-row:hover {
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+
+    .gasto-row-fields {
+      display: contents;
+    }
+
+    .gasto-row-footer {
+      display: contents;
+    }
+
+    .gasto-actions {
+      justify-content: flex-end;
+    }
+
+    .gasto-add-grid {
+      display: grid;
+      grid-template-columns: 7rem 3.25rem minmax(0, 1fr) 6.25rem auto;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .gasto-add-extra {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @container (min-width: 540px) {
+    .gasto-add-stack {
+      display: none;
+    }
+  }
+
+  @container (max-width: 539px) {
+    .gasto-add-grid {
+      display: none;
+    }
+  }
+
   .toggle-inactive:hover {
     opacity: 1;
   }

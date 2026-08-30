@@ -4,12 +4,14 @@ import {
   propagarRecurrentesAMesesSiguientes,
   propagarRecurrentesDesdeMes,
   actualizarMontoRecurrenteEnMesesSiguientes,
-  extraerConceptosUnicos,
+  extraerConceptosBaseUnicos,
   extraerSuscripciones,
   agregarSuscripcionATodosLosMeses,
   eliminarSuscripcionDeTodosLosMeses,
   actualizarSuscripcionEnTodosLosMeses,
+  migrarRangosSuscripciones,
 } from './suscripcionesRecurrentes';
+import { unificarConceptosEnMeses } from '@/lib/conceptosTexto';
 
 const INGRESO_MENSUAL_DEFECTO = 4000000;
 
@@ -39,6 +41,38 @@ const crearEstructuraAnio = (anio) => ({
     },
   })),
 });
+
+const migrarQuincena = (quincena) => {
+  if (!quincena) return quincena;
+  return {
+    ...quincena,
+    obligaciones: quincena.obligaciones.map((item) => ({
+      ...item,
+      categoria: item.categoria || 'otros',
+    })),
+    gastosPersonales: quincena.gastosPersonales.map((item) => ({
+      ...item,
+      categoria: item.categoria || 'otros',
+    })),
+  };
+};
+
+const migrarDatosConCategorias = (meses) => {
+  if (!meses?.length) return meses;
+  return meses.map((mes) => ({
+    ...mes,
+    datosQuincenales: {
+      quincena1: migrarQuincena(mes.datosQuincenales?.quincena1),
+      quincena2: migrarQuincena(mes.datosQuincenales?.quincena2),
+    },
+  }));
+};
+
+const migrarDatos = (meses) => {
+  const conCategorias = migrarDatosConCategorias(meses);
+  const unificados = unificarConceptosEnMeses(conCategorias).meses;
+  return migrarRangosSuscripciones(unificados);
+};
 
 export const useFinanzas = () => {
   // Estados
@@ -77,7 +111,8 @@ export const useFinanzas = () => {
       const data = await response.json();
 
       if (data.datos && data.datos.length > 0) {
-        const mesesSincronizados = sincronizarRecurrentesEnAnio(data.datos);
+        const mesesMigrados = migrarDatos(data.datos);
+        const mesesSincronizados = sincronizarRecurrentesEnAnio(mesesMigrados);
         setDatosAnios((prev) => ({
           ...prev,
           [anio]: { anio, meses: mesesSincronizados },
@@ -190,7 +225,7 @@ export const useFinanzas = () => {
 
   const conceptosSugeridos = useMemo(() => {
     const meses = datosAnios[anioSeleccionado]?.meses;
-    return meses ? extraerConceptosUnicos(meses) : [];
+    return meses ? extraerConceptosBaseUnicos(meses) : [];
   }, [datosAnios, anioSeleccionado]);
 
   const suscripciones = useMemo(() => {
@@ -253,33 +288,37 @@ export const useFinanzas = () => {
 
   // actualizarAhorroQuincenal eliminado - el ahorro se calcula automáticamente
 
-  const agregarItem = (quincena, categoria, concepto, recurrente = false, monto = 0) => {
+  const agregarItem = (quincena, seccion, concepto, monto = 0, categoriaItem = 'otros') => {
     setDatosAnios((prev) => {
       const anio = { ...prev[anioSeleccionado] };
       anio.meses = [...anio.meses];
       const mes = { ...anio.meses[mesSeleccionado] };
       mes.datosQuincenales = { ...mes.datosQuincenales };
       mes.datosQuincenales[quincena] = { ...mes.datosQuincenales[quincena] };
-      mes.datosQuincenales[quincena][categoria] = [...mes.datosQuincenales[quincena][categoria]];
-      mes.datosQuincenales[quincena][categoria].push({
+      mes.datosQuincenales[quincena][seccion] = [...mes.datosQuincenales[quincena][seccion]];
+      mes.datosQuincenales[quincena][seccion].push({
         concepto,
         monto: parseFloat(monto) || 0,
-        recurrente,
+        recurrente: false,
+        categoria: categoriaItem,
       });
       anio.meses[mesSeleccionado] = mes;
-
-      if (recurrente) {
-        anio.meses = propagarRecurrentesAMesesSiguientes(anio.meses, mesSeleccionado);
-      }
 
       return { ...prev, [anioSeleccionado]: anio };
     });
   };
 
-  const agregarSuscripcion = ({ concepto, monto, quincena, categoria }) => {
+  const agregarSuscripcion = ({ concepto, monto, quincena, categoria, mesInicio, mesFin }) => {
     setDatosAnios((prev) => {
       const anio = { ...prev[anioSeleccionado] };
-      anio.meses = agregarSuscripcionATodosLosMeses(anio.meses, { concepto, monto, quincena, categoria });
+      anio.meses = agregarSuscripcionATodosLosMeses(anio.meses, {
+        concepto,
+        monto,
+        quincena,
+        categoria,
+        mesInicio,
+        mesFin,
+      });
       return { ...prev, [anioSeleccionado]: anio };
     });
   };
@@ -296,28 +335,6 @@ export const useFinanzas = () => {
     setDatosAnios((prev) => {
       const anio = { ...prev[anioSeleccionado] };
       anio.meses = eliminarSuscripcionDeTodosLosMeses(anio.meses, quincena, categoria, concepto);
-      return { ...prev, [anioSeleccionado]: anio };
-    });
-  };
-
-  const toggleRecurrente = (quincena, categoria, index, recurrente) => {
-    setDatosAnios((prev) => {
-      const anio = { ...prev[anioSeleccionado] };
-      anio.meses = [...anio.meses];
-      const mes = { ...anio.meses[mesSeleccionado] };
-      mes.datosQuincenales = { ...mes.datosQuincenales };
-      mes.datosQuincenales[quincena] = { ...mes.datosQuincenales[quincena] };
-      mes.datosQuincenales[quincena][categoria] = [...mes.datosQuincenales[quincena][categoria]];
-      mes.datosQuincenales[quincena][categoria][index] = {
-        ...mes.datosQuincenales[quincena][categoria][index],
-        recurrente,
-      };
-      anio.meses[mesSeleccionado] = mes;
-
-      if (recurrente) {
-        anio.meses = propagarRecurrentesAMesesSiguientes(anio.meses, mesSeleccionado);
-      }
-
       return { ...prev, [anioSeleccionado]: anio };
     });
   };
@@ -347,6 +364,23 @@ export const useFinanzas = () => {
       mes.datosQuincenales[quincena][categoria][index] = {
         ...mes.datosQuincenales[quincena][categoria][index],
         concepto: nuevoConcepto,
+      };
+      anio.meses[mesSeleccionado] = mes;
+      return { ...prev, [anioSeleccionado]: anio };
+    });
+  };
+
+  const actualizarCategoria = (quincena, seccion, index, nuevaCategoria) => {
+    setDatosAnios((prev) => {
+      const anio = { ...prev[anioSeleccionado] };
+      anio.meses = [...anio.meses];
+      const mes = { ...anio.meses[mesSeleccionado] };
+      mes.datosQuincenales = { ...mes.datosQuincenales };
+      mes.datosQuincenales[quincena] = { ...mes.datosQuincenales[quincena] };
+      mes.datosQuincenales[quincena][seccion] = [...mes.datosQuincenales[quincena][seccion]];
+      mes.datosQuincenales[quincena][seccion][index] = {
+        ...mes.datosQuincenales[quincena][seccion][index],
+        categoria: nuevaCategoria,
       };
       anio.meses[mesSeleccionado] = mes;
       return { ...prev, [anioSeleccionado]: anio };
@@ -513,7 +547,7 @@ export const useFinanzas = () => {
               anio,
               {
                 ...anioData,
-                meses: sincronizarRecurrentesEnAnio(anioData.meses),
+                meses: sincronizarRecurrentesEnAnio(migrarDatos(anioData.meses)),
               },
             ])
           );
@@ -551,9 +585,9 @@ export const useFinanzas = () => {
     actualizarMontoQuincenal,
     // actualizarAhorroQuincenal eliminado - ahorro es automático
     actualizarConcepto,
+    actualizarCategoria,
     agregarItem,
     eliminarItem,
-    toggleRecurrente,
     agregarSuscripcion,
     actualizarSuscripcion,
     eliminarSuscripcion,

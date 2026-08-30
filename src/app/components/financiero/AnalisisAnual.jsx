@@ -1,3 +1,5 @@
+import AnalisisPorCategorias from './AnalisisPorCategorias';
+
 export default function AnalisisAnual({ datosResumen, formatCOP }) {
   // Determinar el mes actual del año (0-11) y calcular meses transcurridos
   const mesActual = new Date().getMonth();
@@ -328,6 +330,8 @@ export default function AnalisisAnual({ datosResumen, formatCOP }) {
           </div>
         </div>
       </div>
+
+      <AnalisisPorCategorias datosResumen={datosReales} formatCOP={formatCOP} />
     </div>
   );
 }

@@ -40,9 +40,9 @@ const ControlFinanciero = () => {
     actualizarIngresoQuincenal,
     actualizarMontoQuincenal,
     actualizarConcepto,
+    actualizarCategoria,
     agregarItem,
     eliminarItem,
-    toggleRecurrente,
     agregarSuscripcion,
     actualizarSuscripcion,
     eliminarSuscripcion,
@@ -154,9 +154,10 @@ const ControlFinanciero = () => {
             onActualizarIngresoQuincenal={actualizarIngresoQuincenal}
             onActualizarMontoQuincenal={actualizarMontoQuincenal}
             onActualizarConceptoQuincenal={actualizarConcepto}
+            onActualizarCategoriaQuincenal={actualizarCategoria}
             onAgregarItemQuincenal={agregarItem}
             onEliminarItemQuincenal={eliminarItem}
-            onToggleRecurrenteQuincenal={toggleRecurrente}
+            datosResumen={datosResumen}
             formatCOP={formatCOP}
           />
         )}
@@ -164,6 +165,7 @@ const ControlFinanciero = () => {
         {activeSheet === 'suscripciones' && (
           <PanelSuscripciones
             anio={anioSeleccionado}
+            meses={MESES}
             suscripciones={suscripciones}
             conceptosSugeridos={conceptosSugeridos}
             onAgregar={agregarSuscripcion}

@@ -9,9 +9,9 @@ export default function FormularioQuincena({
   onActualizarIngreso,
   onActualizarMonto,
   onActualizarConcepto,
+  onActualizarCategoria,
   onAgregarItem,
   onEliminarItem,
-  onToggleRecurrente,
   formatCOP,
 }) {
   const ingresoQuincenal = datos.ingreso || 0;
@@ -20,7 +20,7 @@ export default function FormularioQuincena({
   const ahorro = ingresoQuincenal - totalObligaciones - totalGastos;
 
   return (
-    <div className='space-y-4'>
+    <div className='space-y-4 min-w-0'>
       <div className='section-blue p-4 rounded-lg border-2'>
         <h3 className='font-bold text-base sm:text-lg mb-3 text-primary'>
           Quincena {numQuincena} - {mesNombre}
@@ -42,11 +42,14 @@ export default function FormularioQuincena({
         conceptosSugeridos={conceptosSugeridos}
         onCambioMonto={(idx, valor) => onActualizarMonto('obligaciones', idx, valor)}
         onCambioConcepto={(idx, valor) => onActualizarConcepto('obligaciones', idx, valor)}
-        onAgregar={(concepto, recurrente, monto) => onAgregarItem('obligaciones', concepto, recurrente, monto)}
+        onCambioCategoria={(idx, valor) => onActualizarCategoria('obligaciones', idx, valor)}
+        onAgregar={(concepto, monto, categoriaItem) =>
+          onAgregarItem('obligaciones', concepto, monto, categoriaItem)
+        }
         onEliminar={(idx) => onEliminarItem('obligaciones', idx)}
-        onToggleRecurrente={(idx, recurrente) => onToggleRecurrente('obligaciones', idx, recurrente)}
         colorClase='section-red'
         formatCOP={formatCOP}
+        tipoCategoria='obligaciones'
       />
 
       <SeccionGastos
@@ -55,11 +58,14 @@ export default function FormularioQuincena({
         conceptosSugeridos={conceptosSugeridos}
         onCambioMonto={(idx, valor) => onActualizarMonto('gastosPersonales', idx, valor)}
         onCambioConcepto={(idx, valor) => onActualizarConcepto('gastosPersonales', idx, valor)}
-        onAgregar={(concepto, recurrente, monto) => onAgregarItem('gastosPersonales', concepto, recurrente, monto)}
+        onCambioCategoria={(idx, valor) => onActualizarCategoria('gastosPersonales', idx, valor)}
+        onAgregar={(concepto, monto, categoriaItem) =>
+          onAgregarItem('gastosPersonales', concepto, monto, categoriaItem)
+        }
         onEliminar={(idx) => onEliminarItem('gastosPersonales', idx)}
-        onToggleRecurrente={(idx, recurrente) => onToggleRecurrente('gastosPersonales', idx, recurrente)}
         colorClase='section-personal'
         formatCOP={formatCOP}
+        tipoCategoria='gastosPersonales'
       />
 
       <div className='section-green p-4 rounded-lg border-2'>
