@@ -89,23 +89,20 @@ export function generarSugerenciasInversion({ capital, indicadores, perfil }) {
     sugerencias.push({
       id: 'emergencia',
       prioridad: 'alta',
-      titulo: 'Fondo de emergencia primero',
-      descripcion: `Se recomienda tener 6 meses de gastos (~${Math.round(fondoEmergencia).toLocaleString('es-CO')} COP) antes de invertir agresivamente. Tu capital actual cubre ${fondoEmergencia > 0 ? ((capital / fondoEmergencia) * 100).toFixed(0) : 0}% del fondo ideal.`,
+      titulo: 'Primero: un colchón de emergencia',
+      descripcion: `Antes de invertir, lo ideal es tener ahorrados 6 meses de gastos (aprox. ${Math.round(fondoEmergencia).toLocaleString('es-CO')} COP). Tú tienes ${fondoEmergencia > 0 ? ((capital / fondoEmergencia) * 100).toFixed(0) : 0}% de esa meta. Ese dinero es para imprevistos: salud, arreglos, si te quedas sin trabajo.`,
       color: 'section-orange',
     });
   }
 
   if (capital >= 500000 && tasaDeposito > 0) {
-    const proyeccion12 = proyeccionInversion(capital, tasaDeposito, 12);
     const rendReal = tasaDeposito - inflacion;
     sugerencias.push({
       id: 'cdt',
       prioridad: capital >= fondoEmergencia ? 'media' : 'baja',
-      titulo: 'CDT / Depósito a término (conservador)',
+      titulo: 'Opción segura: CDT en el banco',
       tasaEA: tasaDeposito,
-      proyeccion12m: proyeccion12,
-      rendimientoReal: rendReal,
-      descripcion: `Tasa referencia depósitos ${tasaDeposito.toFixed(2)}% EA (${indicadores.tasaDeposito?.fuente}). Rendimiento real estimado vs inflación: ${rendReal >= 0 ? '+' : ''}${rendReal.toFixed(1)} pp. Las tasas de CDT varían por banco y plazo.`,
+      descripcion: `Los depósitos a plazo fijo (CDT) pagan alrededor del ${tasaDeposito.toFixed(1)}% al año. ${rendReal >= 0 ? `Eso supera la inflación (~${inflacion.toFixed(1)}%), o sea tu dinero sí crece.` : `Ojo: con inflación del ${inflacion.toFixed(1)}%, tu dinero podría perder un poco de valor real.`} Pregunta en tu banco por plazos y tasas exactas.`,
       color: 'section-green',
       fuente: indicadores.tasaDeposito?.fuente,
     });
@@ -115,9 +112,9 @@ export function generarSugerenciasInversion({ capital, indicadores, perfil }) {
     sugerencias.push({
       id: 'inflacion',
       prioridad: 'media',
-      titulo: 'Meta mínima: superar la inflación',
+      titulo: 'Tu meta mínima: que no pierda valor',
       tasaEA: inflacion,
-      descripcion: `IPC anual Colombia ~${inflacion.toFixed(1)}% (${indicadores.inflacion?.fuente}). Cualquier inversión debe rendir por encima de esto para no perder poder adquisitivo.`,
+      descripcion: `Los precios subieron ~${inflacion.toFixed(1)}% el año pasado. Si tu ahorro no rinde al menos eso, en la práctica estás perdiendo poder de compra aunque el número en la cuenta suba poquito.`,
       color: 'section-blue',
       fuente: indicadores.inflacion?.fuente,
     });
@@ -127,9 +124,9 @@ export function generarSugerenciasInversion({ capital, indicadores, perfil }) {
     sugerencias.push({
       id: 'referencia-tpm',
       prioridad: 'baja',
-      titulo: 'Referencia: tasa BanRep (TPM)',
+      titulo: 'Contexto: la tasa del Banco de la República',
       tasaEA: tpm,
-      descripcion: `La TPM está en ${tpm}% EA (${indicadores.tpm?.fuente}). Los CDT y bonos de deuda pública suelen moverse en relación con esta tasa. Consulta opciones en tu banco.`,
+      descripcion: `Está en ${tpm}% al año. Cuando sube, los créditos suelen encarecerse. Los CDT del banco suelen moverse en la misma dirección. Solo es referencia para entender el panorama.`,
       color: 'section-blue',
       fuente: indicadores.tpm?.fuente,
     });
@@ -139,8 +136,8 @@ export function generarSugerenciasInversion({ capital, indicadores, perfil }) {
     sugerencias.push({
       id: 'costo-deuda',
       prioridad: 'media',
-      titulo: 'Costo de endeudamiento vs inversión',
-      descripcion: `Crédito consumo IBC: ${ibcConsumo.toFixed(2)}% EA · Productivo mayor monto: ${ibcProductivo.toFixed(2)}% EA (Superfinanciera). Si inviertes al ${tasaDeposito.toFixed(1)}% pero debes al ${ibcConsumo.toFixed(1)}%, pierdes. Prioriza pagar deudas caras primero.`,
+      titulo: 'Si debes, invertir puede no convenir',
+      descripcion: `Un crédito personal cuesta ~${ibcConsumo.toFixed(1)}% al año. Si inviertes al ${tasaDeposito.toFixed(1)}% pero debes al ${ibcConsumo.toFixed(1)}%, pierdes dinero. Primero paga deudas caras, luego invierte lo que sobre.`,
       color: 'section-red',
       fuente: 'Superfinanciera — datos.gov.co',
     });
@@ -150,8 +147,8 @@ export function generarSugerenciasInversion({ capital, indicadores, perfil }) {
     sugerencias.push({
       id: 'diversificacion',
       prioridad: 'baja',
-      titulo: 'Diversificación progresiva',
-      descripcion: `Tu tasa de ahorro promedio es ${perfil.tasaAhorroPromedio.toFixed(1)}%, por encima del 10-15% recomendado. Con ${capital.toLocaleString('es-CO')} COP podrías considerar: 50% CDT, 30% fondos indexados (consultar comisiones), 20% liquidez.`,
+      titulo: 'Vas bien con el ahorro',
+      descripcion: `Ahorras ${perfil.tasaAhorroPromedio.toFixed(0)}% de lo que ganas — eso está por encima de lo recomendado (10-15%). Con ${capital.toLocaleString('es-CO')} COP podrías repartir: parte en CDT seguro, parte líquida por si acaso, y solo después explorar otras opciones con asesoría profesional.`,
       color: 'section-green',
     });
   }

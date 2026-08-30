@@ -16,7 +16,7 @@ const TABS = [
   { id: 'quincenal', label: 'Detalle Quincenal', icon: Wallet },
   { id: 'suscripciones', label: 'Suscripciones', icon: Repeat },
   { id: 'analisis', label: 'Análisis Anual', icon: BarChart3 },
-  { id: 'inversiones', label: 'Inversiones y Crédito', icon: LineChart },
+  { id: 'inversiones', label: 'Ahorro y Crédito', icon: LineChart },
 ];
 
 const ControlFinanciero = () => {

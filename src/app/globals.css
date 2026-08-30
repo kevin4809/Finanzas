@@ -425,4 +425,87 @@ body {
     background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
     background-size: 200% 100%;
   }
+
+  /* Help / glossary blocks — legibles en claro y oscuro */
+  .ayuda-trigger {
+    @apply text-xs cursor-pointer list-none flex items-center gap-1 hover:underline w-fit transition-colors;
+    color: #4338ca;
+  }
+
+  .dark .ayuda-trigger {
+    color: #c7d2fe;
+  }
+
+  .ayuda-trigger:hover {
+    color: #4f46e5;
+  }
+
+  .dark .ayuda-trigger:hover {
+    color: #e0e7ff;
+  }
+
+  .ayuda-trigger-on-color {
+    @apply text-xs cursor-pointer list-none flex items-center gap-1 hover:underline w-fit transition-colors;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .ayuda-trigger-on-color:hover {
+    color: #fff;
+  }
+
+  .ayuda-contenido {
+    @apply text-xs mt-2 pl-3 border-l-2 space-y-2 leading-relaxed;
+    border-color: rgba(99, 102, 241, 0.4);
+    color: #475569;
+  }
+
+  .dark .ayuda-contenido {
+    border-color: rgba(129, 140, 248, 0.55);
+    color: #cbd5e1;
+  }
+
+  .ayuda-contenido-on-color {
+    @apply text-xs mt-2 pl-3 border-l-2 space-y-2 leading-relaxed;
+    border-color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .ayuda-label {
+    @apply font-semibold text-[11px] uppercase tracking-wide mb-0.5;
+    color: #1e293b;
+  }
+
+  .dark .ayuda-label {
+    color: #f1f5f9;
+  }
+
+  .ayuda-label-on-color {
+    @apply font-semibold text-[11px] uppercase tracking-wide mb-0.5;
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  .nota-seccion {
+    @apply rounded-2xl border border-dashed p-3 mb-4;
+    background: rgba(99, 102, 241, 0.07);
+    border-color: rgba(99, 102, 241, 0.28);
+  }
+
+  .dark .nota-seccion {
+    background: rgba(99, 102, 241, 0.12);
+    border-color: rgba(129, 140, 248, 0.35);
+  }
+
+  .nota-seccion-titulo {
+    @apply text-xs font-semibold flex items-center gap-1.5;
+    color: var(--foreground);
+  }
+
+  .nota-seccion-texto {
+    @apply text-sm mt-1 leading-relaxed;
+    color: #475569;
+  }
+
+  .dark .nota-seccion-texto {
+    color: #cbd5e1;
+  }
 }

@@ -125,7 +125,7 @@ export async function obtenerIndicadoresEconomicos() {
     uvt: INDICADORES_ESTATICOS.uvt,
     errores,
     disclaimer:
-      'Datos informativos de fuentes públicas. No constituye asesoría financiera. Verifica tasas con tu entidad antes de invertir o solicitar crédito.',
+      'Información de fuentes públicas oficiales del gobierno y el Banco Mundial. Es orientativa, no reemplaza la asesoría de un banco o experto financiero.',
   };
 
   cache = { data: resultado, ts: Date.now() };
