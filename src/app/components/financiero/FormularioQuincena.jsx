@@ -1,7 +1,8 @@
+import { memo } from 'react';
 import SeccionGastos from './SeccionGastos';
 import InputNumero from './InputNumero';
 
-export default function FormularioQuincena({
+function FormularioQuincena({
   numQuincena,
   mesNombre,
   datos,
@@ -39,10 +40,10 @@ export default function FormularioQuincena({
         titulo='Obligaciones'
         items={datos.obligaciones}
         conceptosSugeridos={conceptosSugeridos}
-        onCambioMonto={(idx, valor) => onActualizarMonto('obligaciones', idx, valor)}
-        onCambioConcepto={(idx, valor) => onActualizarConcepto('obligaciones', idx, valor)}
-        onCambioCategoria={(idx, valor) => onActualizarCategoria('obligaciones', idx, valor)}
-        onEliminar={(idx) => onEliminarItem('obligaciones', idx)}
+        onCambioMonto={onActualizarMonto}
+        onCambioConcepto={onActualizarConcepto}
+        onCambioCategoria={onActualizarCategoria}
+        onEliminar={onEliminarItem}
         colorClase='section-red'
         formatCOP={formatCOP}
         tipoCategoria='obligaciones'
@@ -53,10 +54,10 @@ export default function FormularioQuincena({
         titulo='Gastos Personales'
         items={datos.gastosPersonales}
         conceptosSugeridos={conceptosSugeridos}
-        onCambioMonto={(idx, valor) => onActualizarMonto('gastosPersonales', idx, valor)}
-        onCambioConcepto={(idx, valor) => onActualizarConcepto('gastosPersonales', idx, valor)}
-        onCambioCategoria={(idx, valor) => onActualizarCategoria('gastosPersonales', idx, valor)}
-        onEliminar={(idx) => onEliminarItem('gastosPersonales', idx)}
+        onCambioMonto={onActualizarMonto}
+        onCambioConcepto={onActualizarConcepto}
+        onCambioCategoria={onActualizarCategoria}
+        onEliminar={onEliminarItem}
         colorClase='section-personal'
         formatCOP={formatCOP}
         tipoCategoria='gastosPersonales'
@@ -75,3 +76,5 @@ export default function FormularioQuincena({
     </div>
   );
 }
+
+export default memo(FormularioQuincena);

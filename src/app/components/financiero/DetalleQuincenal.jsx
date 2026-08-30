@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import FormularioQuincena from './FormularioQuincena';
 import FormularioAgregarGasto from './FormularioAgregarGasto';
 import VistaRapidaMontos from './VistaRapidaMontos';
@@ -25,50 +25,59 @@ export default function DetalleQuincenal({
 }) {
   const [vistaRapida, setVistaRapida] = useState(false);
 
+  // Los useCallback deben ir antes de cualquier return condicional (reglas de
+  // hooks) — por eso el "if (!datosQuincenales)" está después de todos ellos.
+  // Todos estos handlers van con useCallback para que FormularioQuincena/
+  // SeccionGastos reciban props estables: son memo() y sin esto, cada tecla
+  // recreaba las funciones y forzaba a reconciliar TODAS las filas del mes,
+  // no solo la que se estaba editando.
+  const handleAgregarUnificado = useCallback((seccion, concepto, monto, categoriaItem, dia) => {
+    const destino = quincenaPorDia(dia);
+    if (!destino) return;
+    onAgregarItemQuincenal(destino, seccion, concepto, monto, categoriaItem);
+  }, [onAgregarItemQuincenal]);
+
+  const handleActualizarMontoQ1 = useCallback((categoria, idx, valor) => {
+    onActualizarMontoQuincenal('quincena1', categoria, idx, valor);
+  }, [onActualizarMontoQuincenal]);
+
+  const handleActualizarMontoQ2 = useCallback((categoria, idx, valor) => {
+    onActualizarMontoQuincenal('quincena2', categoria, idx, valor);
+  }, [onActualizarMontoQuincenal]);
+
+  const handleActualizarConceptoQ1 = useCallback((categoria, idx, valor) => {
+    onActualizarConceptoQuincenal('quincena1', categoria, idx, valor);
+  }, [onActualizarConceptoQuincenal]);
+
+  const handleActualizarConceptoQ2 = useCallback((categoria, idx, valor) => {
+    onActualizarConceptoQuincenal('quincena2', categoria, idx, valor);
+  }, [onActualizarConceptoQuincenal]);
+
+  const handleActualizarCategoriaQ1 = useCallback((categoria, idx, valor) => {
+    onActualizarCategoriaQuincenal('quincena1', categoria, idx, valor);
+  }, [onActualizarCategoriaQuincenal]);
+
+  const handleActualizarCategoriaQ2 = useCallback((categoria, idx, valor) => {
+    onActualizarCategoriaQuincenal('quincena2', categoria, idx, valor);
+  }, [onActualizarCategoriaQuincenal]);
+
+  const handleEliminarItemQ1 = useCallback((categoria, idx) => {
+    onEliminarItemQuincenal('quincena1', categoria, idx);
+  }, [onEliminarItemQuincenal]);
+
+  const handleEliminarItemQ2 = useCallback((categoria, idx) => {
+    onEliminarItemQuincenal('quincena2', categoria, idx);
+  }, [onEliminarItemQuincenal]);
+
+  const handleActualizarIngresoQ1 = useCallback((valor) => onActualizarIngresoQuincenal('quincena1', valor), [onActualizarIngresoQuincenal]);
+  const handleActualizarIngresoQ2 = useCallback((valor) => onActualizarIngresoQuincenal('quincena2', valor), [onActualizarIngresoQuincenal]);
+
   if (!datosQuincenales) {
     return <div className='p-6 text-primary'>Cargando datos...</div>;
   }
 
   const datosQuincena1 = datosQuincenales.quincena1;
   const datosQuincena2 = datosQuincenales.quincena2;
-
-  const handleAgregarUnificado = (seccion, concepto, monto, categoriaItem, dia) => {
-    const destino = quincenaPorDia(dia);
-    if (!destino) return;
-    onAgregarItemQuincenal(destino, seccion, concepto, monto, categoriaItem);
-  };
-
-  const handleActualizarMontoQ1 = (categoria, idx, valor) => {
-    onActualizarMontoQuincenal('quincena1', categoria, idx, valor);
-  };
-
-  const handleActualizarMontoQ2 = (categoria, idx, valor) => {
-    onActualizarMontoQuincenal('quincena2', categoria, idx, valor);
-  };
-
-  const handleActualizarConceptoQ1 = (categoria, idx, valor) => {
-    onActualizarConceptoQuincenal('quincena1', categoria, idx, valor);
-  };
-
-  const handleActualizarConceptoQ2 = (categoria, idx, valor) => {
-    onActualizarConceptoQuincenal('quincena2', categoria, idx, valor);
-  };
-
-  const handleActualizarCategoriaQ1 = (categoria, idx, valor) => {
-    onActualizarCategoriaQuincenal('quincena1', categoria, idx, valor);
-  };
-
-  const handleActualizarCategoriaQ2 = (categoria, idx, valor) => {
-    onActualizarCategoriaQuincenal('quincena2', categoria, idx, valor);
-  };
-
-  const handleEliminarItemQ1 = (categoria, idx) => {
-    onEliminarItemQuincenal('quincena1', categoria, idx);
-  };
-
-  const handleEliminarItemQ2 = (categoria, idx) => {
-    onEliminarItemQuincenal('quincena2', categoria, idx);
-  };
 
   return (
     <div>
@@ -128,7 +137,7 @@ export default function DetalleQuincenal({
               mesNombre={meses[mesSeleccionado]}
               datos={datosQuincena1}
               conceptosSugeridos={conceptosSugeridos}
-              onActualizarIngreso={(valor) => onActualizarIngresoQuincenal('quincena1', valor)}
+              onActualizarIngreso={handleActualizarIngresoQ1}
               onActualizarMonto={handleActualizarMontoQ1}
               onActualizarConcepto={handleActualizarConceptoQ1}
               onActualizarCategoria={handleActualizarCategoriaQ1}
@@ -140,7 +149,7 @@ export default function DetalleQuincenal({
               mesNombre={meses[mesSeleccionado]}
               datos={datosQuincena2}
               conceptosSugeridos={conceptosSugeridos}
-              onActualizarIngreso={(valor) => onActualizarIngresoQuincenal('quincena2', valor)}
+              onActualizarIngreso={handleActualizarIngresoQ2}
               onActualizarMonto={handleActualizarMontoQ2}
               onActualizarConcepto={handleActualizarConceptoQ2}
               onActualizarCategoria={handleActualizarCategoriaQ2}

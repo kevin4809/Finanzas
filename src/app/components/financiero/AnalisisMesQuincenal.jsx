@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { obtenerInfoCategoria } from '@/constants/categorias';
 import { TrendingDown, TrendingUp, Award, AlertCircle, Lightbulb } from 'lucide-react';
 
@@ -273,16 +274,23 @@ function InsightCard({ icon: Icon, tone, tipo, titulo, formatCOP, ...data }) {
   );
 }
 
-export default function AnalisisMesQuincenal({
+function AnalisisMesQuincenal({
   mesNombre,
   mesSeleccionado,
   datosQuincenales,
   datosResumen,
   formatCOP,
 }) {
-  if (!datosQuincenales) return null;
+  // Memoizado: calcularAnalisis ordena/recorre todos los movimientos del mes
+  // (top 5 gastos, categorías, insights) — no hace falta rehacerlo si las
+  // props no cambiaron (p.ej. al alternar "Vista rápida" en el padre).
+  const stats = useMemo(
+    () => (datosQuincenales ? calcularAnalisis(datosQuincenales, datosResumen, mesSeleccionado) : null),
+    [datosQuincenales, datosResumen, mesSeleccionado]
+  );
 
-  const stats = calcularAnalisis(datosQuincenales, datosResumen, mesSeleccionado);
+  if (!stats) return null;
+
   const ahorroTone = stats.ahorro >= 0 ? 'savings' : 'savingsBad';
 
   return (
@@ -403,3 +411,5 @@ export default function AnalisisMesQuincenal({
     </div>
   );
 }
+
+export default memo(AnalisisMesQuincenal);

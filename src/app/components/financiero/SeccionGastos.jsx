@@ -1,4 +1,4 @@
-import { useState, useId } from 'react';
+import { useState, useId, useCallback, memo } from 'react';
 import { Trash2, Plus } from 'lucide-react';
 import InputNumero from './InputNumero';
 import { obtenerCategoriasPorTipo } from '@/constants/categorias';
@@ -21,7 +21,50 @@ function SelectCategoria({ value, onChange, categorias, className = '' }) {
   );
 }
 
-export default function SeccionGastos({
+// Fila memoizada: si onCambioMonto/onCambioConcepto/onCambioCategoria/onEliminar
+// son estables (useCallback en los padres) y solo se edita el item de ESTA fila,
+// las demás filas conservan la misma referencia de `item` y React.memo evita
+// re-renderizarlas — antes, escribir en una fila reconciliaba las 30+ filas
+// del mes en cada tecla.
+const FilaGasto = memo(function FilaGasto({ item, idx, seccion, categorias, onCambioMonto, onCambioConcepto, onCambioCategoria, onEliminar }) {
+  return (
+    <div className='gasto-row'>
+      <div className='gasto-row-fields'>
+        <SelectCategoria
+          value={item.categoria || 'otros'}
+          onChange={(e) => onCambioCategoria?.(seccion, idx, e.target.value)}
+          categorias={categorias}
+        />
+        <input
+          type='text'
+          value={item.concepto}
+          onChange={(e) => onCambioConcepto(seccion, idx, e.target.value)}
+          className='input-compact w-full min-w-0'
+          placeholder='Concepto'
+        />
+      </div>
+      <div className='gasto-row-footer'>
+        <InputNumero
+          valor={item.monto}
+          onChange={(valor) => onCambioMonto(seccion, idx, valor)}
+          className='flex-1 min-w-0 input-compact text-right tabular-nums'
+        />
+        <div className='gasto-actions'>
+          <button
+            type='button'
+            onClick={() => onEliminar(seccion, idx)}
+            className='gasto-icon-btn is-danger'
+            title='Eliminar'
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+function SeccionGastos({
   titulo,
   items,
   onCambioMonto,
@@ -77,39 +120,17 @@ export default function SeccionGastos({
 
       <div>
         {items.map((item, idx) => (
-          <div key={idx} className='gasto-row'>
-            <div className='gasto-row-fields'>
-              <SelectCategoria
-                value={item.categoria || 'otros'}
-                onChange={(e) => onCambioCategoria?.(idx, e.target.value)}
-                categorias={categorias}
-              />
-              <input
-                type='text'
-                value={item.concepto}
-                onChange={(e) => onCambioConcepto(idx, e.target.value)}
-                className='input-compact w-full min-w-0'
-                placeholder='Concepto'
-              />
-            </div>
-            <div className='gasto-row-footer'>
-              <InputNumero
-                valor={item.monto}
-                onChange={(valor) => onCambioMonto(idx, valor)}
-                className='flex-1 min-w-0 input-compact text-right tabular-nums'
-              />
-              <div className='gasto-actions'>
-                <button
-                  type='button'
-                  onClick={() => onEliminar(idx)}
-                  className='gasto-icon-btn is-danger'
-                  title='Eliminar'
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
-          </div>
+          <FilaGasto
+            key={idx}
+            item={item}
+            idx={idx}
+            seccion={tipoCategoria}
+            categorias={categorias}
+            onCambioMonto={onCambioMonto}
+            onCambioConcepto={onCambioConcepto}
+            onCambioCategoria={onCambioCategoria}
+            onEliminar={onEliminar}
+          />
         ))}
       </div>
 
@@ -211,3 +232,5 @@ export default function SeccionGastos({
     </div>
   );
 }
+
+export default memo(SeccionGastos);

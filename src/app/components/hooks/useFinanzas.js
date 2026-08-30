@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import {
   sincronizarRecurrentesEnAnio,
   propagarRecurrentesAMesesSiguientes,
@@ -248,14 +248,19 @@ export const useFinanzas = () => {
     return meses ? extraerSuscripciones(meses) : [];
   }, [datosAnios, anioSeleccionado]);
 
-  const guardarManualmente = () => {
+  const guardarManualmente = useCallback(() => {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     if (datosAnios[anioSeleccionado]?.meses) {
       guardarEnMongoDB(anioSeleccionado, datosAnios[anioSeleccionado].meses);
     }
-  };
+  }, [datosAnios, anioSeleccionado]);
 
-  const actualizarIngresoQuincenal = (quincena, nuevoIngreso) => {
+  // Todas las funciones de mutación van envueltas en useCallback: sin esto,
+  // cada render de useFinanzas crea funciones nuevas y eso rompe React.memo
+  // en los hijos (SeccionGastos, FormularioQuincena, etc.), forzando a
+  // re-renderizar y recalcular TODAS las filas del mes en cada tecla que se
+  // escribe, no solo la fila editada.
+  const actualizarIngresoQuincenal = useCallback((quincena, nuevoIngreso) => {
     setDatosAnios((prev) => {
       const anio = { ...prev[anioSeleccionado] };
       anio.meses = [...anio.meses];
@@ -268,9 +273,9 @@ export const useFinanzas = () => {
       anio.meses[mesSeleccionado] = mes;
       return { ...prev, [anioSeleccionado]: anio };
     });
-  };
+  }, [anioSeleccionado, mesSeleccionado]);
 
-  const actualizarMontoQuincenal = (quincena, categoria, index, nuevoMonto) => {
+  const actualizarMontoQuincenal = useCallback((quincena, categoria, index, nuevoMonto) => {
     setDatosAnios((prev) => {
       const anio = { ...prev[anioSeleccionado] };
       anio.meses = [...anio.meses];
@@ -299,11 +304,11 @@ export const useFinanzas = () => {
 
       return { ...prev, [anioSeleccionado]: anio };
     });
-  };
+  }, [anioSeleccionado, mesSeleccionado]);
 
   // actualizarAhorroQuincenal eliminado - el ahorro se calcula automáticamente
 
-  const agregarItem = (quincena, seccion, concepto, monto = 0, categoriaItem = 'otros') => {
+  const agregarItem = useCallback((quincena, seccion, concepto, monto = 0, categoriaItem = 'otros') => {
     setDatosAnios((prev) => {
       const anio = { ...prev[anioSeleccionado] };
       anio.meses = [...anio.meses];
@@ -321,9 +326,9 @@ export const useFinanzas = () => {
 
       return { ...prev, [anioSeleccionado]: anio };
     });
-  };
+  }, [anioSeleccionado, mesSeleccionado]);
 
-  const agregarSuscripcion = ({ concepto, monto, quincena, categoria, mesInicio, mesFin }) => {
+  const agregarSuscripcion = useCallback(({ concepto, monto, quincena, categoria, mesInicio, mesFin }) => {
     setDatosAnios((prev) => {
       const anio = { ...prev[anioSeleccionado] };
       anio.meses = agregarSuscripcionATodosLosMeses(anio.meses, {
@@ -336,25 +341,25 @@ export const useFinanzas = () => {
       });
       return { ...prev, [anioSeleccionado]: anio };
     });
-  };
+  }, [anioSeleccionado]);
 
-  const actualizarSuscripcion = (quincena, categoria, conceptoAnterior, cambios) => {
+  const actualizarSuscripcion = useCallback((quincena, categoria, conceptoAnterior, cambios) => {
     setDatosAnios((prev) => {
       const anio = { ...prev[anioSeleccionado] };
       anio.meses = actualizarSuscripcionEnTodosLosMeses(anio.meses, quincena, categoria, conceptoAnterior, cambios);
       return { ...prev, [anioSeleccionado]: anio };
     });
-  };
+  }, [anioSeleccionado]);
 
-  const eliminarSuscripcion = (quincena, categoria, concepto) => {
+  const eliminarSuscripcion = useCallback((quincena, categoria, concepto) => {
     setDatosAnios((prev) => {
       const anio = { ...prev[anioSeleccionado] };
       anio.meses = eliminarSuscripcionDeTodosLosMeses(anio.meses, quincena, categoria, concepto);
       return { ...prev, [anioSeleccionado]: anio };
     });
-  };
+  }, [anioSeleccionado]);
 
-  const eliminarItem = (quincena, categoria, index) => {
+  const eliminarItem = useCallback((quincena, categoria, index) => {
     setDatosAnios((prev) => {
       const anio = { ...prev[anioSeleccionado] };
       anio.meses = [...anio.meses];
@@ -366,9 +371,9 @@ export const useFinanzas = () => {
       anio.meses[mesSeleccionado] = mes;
       return { ...prev, [anioSeleccionado]: anio };
     });
-  };
+  }, [anioSeleccionado, mesSeleccionado]);
 
-  const actualizarConcepto = (quincena, categoria, index, nuevoConcepto) => {
+  const actualizarConcepto = useCallback((quincena, categoria, index, nuevoConcepto) => {
     setDatosAnios((prev) => {
       const anio = { ...prev[anioSeleccionado] };
       anio.meses = [...anio.meses];
@@ -400,9 +405,9 @@ export const useFinanzas = () => {
       anio.meses[mesSeleccionado] = mes;
       return { ...prev, [anioSeleccionado]: anio };
     });
-  };
+  }, [anioSeleccionado, mesSeleccionado]);
 
-  const actualizarCategoria = (quincena, seccion, index, nuevaCategoria) => {
+  const actualizarCategoria = useCallback((quincena, seccion, index, nuevaCategoria) => {
     setDatosAnios((prev) => {
       const anio = { ...prev[anioSeleccionado] };
       anio.meses = [...anio.meses];
@@ -417,7 +422,7 @@ export const useFinanzas = () => {
       anio.meses[mesSeleccionado] = mes;
       return { ...prev, [anioSeleccionado]: anio };
     });
-  };
+  }, [anioSeleccionado, mesSeleccionado]);
 
   // useEffect: Cargar datos iniciales
   useEffect(() => {
