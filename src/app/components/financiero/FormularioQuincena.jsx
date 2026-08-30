@@ -3,6 +3,7 @@ import InputNumero from './InputNumero';
 
 export default function FormularioQuincena({
   numQuincena,
+  quincenaKey,
   mesNombre,
   datos,
   conceptosSugeridos,
@@ -43,13 +44,14 @@ export default function FormularioQuincena({
         onCambioMonto={(idx, valor) => onActualizarMonto('obligaciones', idx, valor)}
         onCambioConcepto={(idx, valor) => onActualizarConcepto('obligaciones', idx, valor)}
         onCambioCategoria={(idx, valor) => onActualizarCategoria('obligaciones', idx, valor)}
-        onAgregar={(concepto, monto, categoriaItem) =>
-          onAgregarItem('obligaciones', concepto, monto, categoriaItem)
+        onAgregar={(concepto, monto, categoriaItem, dia) =>
+          onAgregarItem('obligaciones', concepto, monto, categoriaItem, dia)
         }
         onEliminar={(idx) => onEliminarItem('obligaciones', idx)}
         colorClase='section-red'
         formatCOP={formatCOP}
         tipoCategoria='obligaciones'
+        quincenaActual={quincenaKey}
       />
 
       <SeccionGastos
@@ -59,13 +61,14 @@ export default function FormularioQuincena({
         onCambioMonto={(idx, valor) => onActualizarMonto('gastosPersonales', idx, valor)}
         onCambioConcepto={(idx, valor) => onActualizarConcepto('gastosPersonales', idx, valor)}
         onCambioCategoria={(idx, valor) => onActualizarCategoria('gastosPersonales', idx, valor)}
-        onAgregar={(concepto, monto, categoriaItem) =>
-          onAgregarItem('gastosPersonales', concepto, monto, categoriaItem)
+        onAgregar={(concepto, monto, categoriaItem, dia) =>
+          onAgregarItem('gastosPersonales', concepto, monto, categoriaItem, dia)
         }
         onEliminar={(idx) => onEliminarItem('gastosPersonales', idx)}
         colorClase='section-personal'
         formatCOP={formatCOP}
         tipoCategoria='gastosPersonales'
+        quincenaActual={quincenaKey}
       />
 
       <div className='section-green p-4 rounded-lg border-2'>

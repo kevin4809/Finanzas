@@ -1,7 +1,10 @@
 import {
   extraerBaseConcepto,
+  etiquetaQuincena,
   formatearConceptoConDia,
   parsearConceptoConDia,
+  quincenaPorConcepto,
+  quincenaPorDia,
 } from '@/lib/conceptosTexto';
 
 const QUINCENAS = ['quincena1', 'quincena2'];
@@ -10,7 +13,14 @@ const ULTIMO_MES = 11;
 
 const normalizarConcepto = (concepto) => concepto.trim().toLowerCase();
 
-export { extraerBaseConcepto, formatearConceptoConDia, parsearConceptoConDia };
+export {
+  extraerBaseConcepto,
+  etiquetaQuincena,
+  formatearConceptoConDia,
+  parsearConceptoConDia,
+  quincenaPorConcepto,
+  quincenaPorDia,
+};
 
 /** null = sin fecha de fin → activa desde mesInicio en adelante */
 export const suscripcionActivaEnMes = (mesIndex, mesInicio, mesFin) => {
@@ -312,6 +322,7 @@ export const actualizarSuscripcionEnTodosLosMeses = (meses, quincena, categoria,
   const monto = cambios.monto ?? ref?.monto ?? 0;
   const mesInicio = cambios.mesInicio ?? ref?.mesInicio ?? 0;
   const mesFin = 'mesFin' in cambios ? normalizarMesFin(cambios.mesFin) : (ref?.mesFin ?? null);
+  const quincenaDestino = cambios.quincena ?? quincena;
 
   const itemBase = crearItemSuscripcion({ concepto, monto, categoria, mesInicio, mesFin });
 
@@ -321,7 +332,7 @@ export const actualizarSuscripcionEnTodosLosMeses = (meses, quincena, categoria,
     );
 
     if (suscripcionActivaEnMes(index, itemBase.mesInicio, itemBase.mesFin)) {
-      mes.datosQuincenales[quincena][categoria].push({ ...itemBase, concepto });
+      mes.datosQuincenales[quincenaDestino][categoria].push({ ...itemBase, concepto });
     }
 
     return mes;

@@ -11,7 +11,7 @@ import {
   actualizarSuscripcionEnTodosLosMeses,
   migrarRangosSuscripciones,
 } from './suscripcionesRecurrentes';
-import { unificarConceptosEnMeses } from '@/lib/conceptosTexto';
+import { unificarConceptosEnMeses, quincenaPorConcepto } from '@/lib/conceptosTexto';
 
 const INGRESO_MENSUAL_DEFECTO = 4000000;
 
@@ -359,12 +359,29 @@ export const useFinanzas = () => {
       anio.meses = [...anio.meses];
       const mes = { ...anio.meses[mesSeleccionado] };
       mes.datosQuincenales = { ...mes.datosQuincenales };
-      mes.datosQuincenales[quincena] = { ...mes.datosQuincenales[quincena] };
-      mes.datosQuincenales[quincena][categoria] = [...mes.datosQuincenales[quincena][categoria]];
-      mes.datosQuincenales[quincena][categoria][index] = {
-        ...mes.datosQuincenales[quincena][categoria][index],
-        concepto: nuevoConcepto,
-      };
+
+      const item = mes.datosQuincenales[quincena][categoria][index];
+      if (!item) return prev;
+
+      const quincenaDestino = quincenaPorConcepto(nuevoConcepto) ?? quincena;
+      const itemActualizado = { ...item, concepto: nuevoConcepto };
+
+      if (quincenaDestino === quincena) {
+        mes.datosQuincenales[quincena] = { ...mes.datosQuincenales[quincena] };
+        mes.datosQuincenales[quincena][categoria] = [...mes.datosQuincenales[quincena][categoria]];
+        mes.datosQuincenales[quincena][categoria][index] = itemActualizado;
+      } else {
+        mes.datosQuincenales[quincena] = { ...mes.datosQuincenales[quincena] };
+        mes.datosQuincenales[quincena][categoria] = [...mes.datosQuincenales[quincena][categoria]];
+        mes.datosQuincenales[quincena][categoria].splice(index, 1);
+
+        mes.datosQuincenales[quincenaDestino] = { ...mes.datosQuincenales[quincenaDestino] };
+        mes.datosQuincenales[quincenaDestino][categoria] = [
+          ...mes.datosQuincenales[quincenaDestino][categoria],
+          itemActualizado,
+        ];
+      }
+
       anio.meses[mesSeleccionado] = mes;
       return { ...prev, [anioSeleccionado]: anio };
     });

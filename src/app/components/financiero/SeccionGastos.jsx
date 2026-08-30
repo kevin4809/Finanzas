@@ -2,7 +2,7 @@ import { useState, useId } from 'react';
 import { Trash2, Plus } from 'lucide-react';
 import InputNumero from './InputNumero';
 import { obtenerCategoriasPorTipo } from '@/constants/categorias';
-import { formatearConceptoConDia } from '../hooks/suscripcionesRecurrentes';
+import { formatearConceptoConDia, etiquetaQuincena, quincenaPorDia } from '../hooks/suscripcionesRecurrentes';
 
 function SelectCategoria({ value, onChange, categorias, className = '' }) {
   return (
@@ -33,6 +33,7 @@ export default function SeccionGastos({
   colorClase,
   formatCOP,
   tipoCategoria = 'gastosPersonales',
+  quincenaActual = 'quincena1',
 }) {
   const [nuevoDia, setNuevoDia] = useState('');
   const [nuevoConcepto, setNuevoConcepto] = useState('');
@@ -45,13 +46,16 @@ export default function SeccionGastos({
   const handleAgregar = () => {
     const conceptoFinal = formatearConceptoConDia(nuevoDia, nuevoConcepto);
     if (conceptoFinal) {
-      onAgregar(conceptoFinal, nuevoMonto, nuevaCategoria);
+      onAgregar(conceptoFinal, nuevoMonto, nuevaCategoria, nuevoDia);
       setNuevoDia('');
       setNuevoConcepto('');
       setNuevoMonto(0);
       setNuevaCategoria('otros');
     }
   };
+
+  const quincenaDestino = quincenaPorDia(nuevoDia);
+  const vaAOtraQuincena = quincenaDestino && quincenaDestino !== quincenaActual;
 
   return (
     <div className={`gastos-panel ${colorClase} p-3 sm:p-4 rounded-lg min-w-0 overflow-hidden`}>
@@ -186,9 +190,19 @@ export default function SeccionGastos({
         </div>
 
         <p className='gasto-add-extra mt-2 text-[11px] text-muted leading-snug'>
-          {nuevoDia && nuevoConcepto.trim()
-            ? `→ ${formatearConceptoConDia(nuevoDia, nuevoConcepto)}`
-            : 'Día opcional · Enter para agregar'}
+          {nuevoDia && nuevoConcepto.trim() ? (
+            <>
+              → {formatearConceptoConDia(nuevoDia, nuevoConcepto)}
+              {vaAOtraQuincena && (
+                <span className='text-indigo-600 dark:text-indigo-400 font-medium'>
+                  {' '}
+                  · se agregará en {etiquetaQuincena(quincenaDestino)}
+                </span>
+              )}
+            </>
+          ) : (
+            'Día 1-15 → Q1 · 16-31 → Q2 · Enter para agregar'
+          )}
         </p>
       </div>
 

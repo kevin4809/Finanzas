@@ -4,6 +4,7 @@ import { useState } from 'react';
 import FormularioQuincena from './FormularioQuincena';
 import VistaRapidaMontos from './VistaRapidaMontos';
 import AnalisisMesQuincenal from './AnalisisMesQuincenal';
+import { quincenaPorDia } from '../hooks/suscripcionesRecurrentes';
 
 export default function DetalleQuincenal({
   mesSeleccionado,
@@ -30,6 +31,13 @@ export default function DetalleQuincenal({
   const datosQuincena1 = datosQuincenales.quincena1;
   const datosQuincena2 = datosQuincenales.quincena2;
 
+  const resolverQuincena = (dia, quincenaForm) => quincenaPorDia(dia) ?? quincenaForm;
+
+  const handleAgregarItem = (quincenaForm) => (categoria, concepto, monto, categoriaItem, dia) => {
+    const destino = resolverQuincena(dia, quincenaForm);
+    onAgregarItemQuincenal(destino, categoria, concepto, monto, categoriaItem);
+  };
+
   const handleActualizarMontoQ1 = (categoria, idx, valor) => {
     onActualizarMontoQuincenal('quincena1', categoria, idx, valor);
   };
@@ -54,13 +62,8 @@ export default function DetalleQuincenal({
     onActualizarCategoriaQuincenal('quincena2', categoria, idx, valor);
   };
 
-  const handleAgregarItemQ1 = (categoria, concepto, monto, categoriaItem) => {
-    onAgregarItemQuincenal('quincena1', categoria, concepto, monto, categoriaItem);
-  };
-
-  const handleAgregarItemQ2 = (categoria, concepto, monto, categoriaItem) => {
-    onAgregarItemQuincenal('quincena2', categoria, concepto, monto, categoriaItem);
-  };
+  const handleAgregarItemQ1 = handleAgregarItem('quincena1');
+  const handleAgregarItemQ2 = handleAgregarItem('quincena2');
 
   const handleEliminarItemQ1 = (categoria, idx) => {
     onEliminarItemQuincenal('quincena1', categoria, idx);
@@ -118,6 +121,7 @@ export default function DetalleQuincenal({
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0'>
           <FormularioQuincena
             numQuincena={1}
+            quincenaKey='quincena1'
             mesNombre={meses[mesSeleccionado]}
             datos={datosQuincena1}
             conceptosSugeridos={conceptosSugeridos}
@@ -131,6 +135,7 @@ export default function DetalleQuincenal({
           />
           <FormularioQuincena
             numQuincena={2}
+            quincenaKey='quincena2'
             mesNombre={meses[mesSeleccionado]}
             datos={datosQuincena2}
             conceptosSugeridos={conceptosSugeridos}

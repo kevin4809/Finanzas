@@ -27,6 +27,20 @@ export const parsearConceptoConDia = (concepto) => {
   return { dia: match[1], base: match[2].trim() };
 };
 
+/** Días 1-15 → Q1, 16-31 → Q2. Sin día válido → null */
+export const quincenaPorDia = (dia) => {
+  const diaNum = parseInt(String(dia ?? '').trim(), 10);
+  if (!diaNum || diaNum < 1 || diaNum > 31) return null;
+  return diaNum <= 15 ? 'quincena1' : 'quincena2';
+};
+
+export const quincenaPorConcepto = (concepto) => {
+  const { dia } = parsearConceptoConDia(concepto);
+  return quincenaPorDia(dia);
+};
+
+export const etiquetaQuincena = (quincena) => (quincena === 'quincena2' ? 'Q2' : 'Q1');
+
 /** Clave para agrupar variantes similares (mayúsculas, acentos, "de", etc.) */
 export const claveAgrupacionConcepto = (concepto) => {
   const base = extraerBaseConcepto(concepto);

@@ -5,6 +5,8 @@ import { suscripcionActivaEnMes } from '../hooks/suscripcionesRecurrentes';
 import {
   formatearConceptoConDia,
   parsearConceptoConDia,
+  etiquetaQuincena,
+  quincenaPorDia,
 } from '@/lib/conceptosTexto';
 
 const CATEGORIA_LABEL = {
@@ -48,7 +50,12 @@ function FilaSuscripcion({ sub, meses, onActualizar, onEliminar }) {
   const guardarConcepto = () => {
     const nuevo = formatearConceptoConDia(diaLocal, baseLocal);
     if (nuevo !== sub.concepto) {
-      onActualizar(sub.quincena, sub.categoria, sub.concepto, { concepto: nuevo });
+      const cambios = { concepto: nuevo };
+      const nuevaQuincena = quincenaPorDia(diaLocal);
+      if (nuevaQuincena && nuevaQuincena !== sub.quincena) {
+        cambios.quincena = nuevaQuincena;
+      }
+      onActualizar(sub.quincena, sub.categoria, sub.concepto, cambios);
     }
   };
 
@@ -163,14 +170,21 @@ export default function PanelSuscripciones({
     : suscripciones;
   const totalMesReferencia = suscripcionesActivasMes.reduce((sum, s) => sum + s.monto, 0);
 
+  const handleCambioDia = (valor) => {
+    setDia(valor);
+    const auto = quincenaPorDia(valor);
+    if (auto) setQuincena(auto);
+  };
+
   const handleAgregar = () => {
     const conceptoFinal = formatearConceptoConDia(dia, concepto);
     if (!conceptoFinal) return;
     const fin = mesFin === '' ? null : parseInt(mesFin, 10);
+    const quincenaFinal = quincenaPorDia(dia) ?? quincena;
     onAgregar({
       concepto: conceptoFinal,
       monto,
-      quincena,
+      quincena: quincenaFinal,
       categoria,
       mesInicio,
       mesFin: fin,
@@ -204,9 +218,9 @@ export default function PanelSuscripciones({
             inputMode='numeric'
             maxLength={2}
             value={dia}
-            onChange={(e) => setDia(e.target.value.replace(/\D/g, '').slice(0, 2))}
+            onChange={(e) => handleCambioDia(e.target.value.replace(/\D/g, '').slice(0, 2))}
             placeholder='Día'
-            title='Día del mes (opcional)'
+            title='Día del mes (1-15 → Q1, 16-31 → Q2)'
             className='input-field text-center'
           />
           <input
@@ -225,8 +239,8 @@ export default function PanelSuscripciones({
           </datalist>
           <InputNumero valor={monto} onChange={setMonto} className='input-field text-right' />
           <select value={quincena} onChange={(e) => setQuincena(e.target.value)} className='input-field font-normal'>
-            <option value='quincena1'>Quincena 1</option>
-            <option value='quincena2'>Quincena 2</option>
+            <option value='quincena1'>Quincena 1 (días 1-15)</option>
+            <option value='quincena2'>Quincena 2 (días 16-31)</option>
           </select>
           <select value={categoria} onChange={(e) => setCategoria(e.target.value)} className='input-field font-normal'>
             <option value='obligaciones'>Obligación</option>
@@ -249,6 +263,7 @@ export default function PanelSuscripciones({
         {concepto.trim() && (
           <p className='text-xs text-muted mt-2'>
             {dia ? `Se guardará como: ${formatearConceptoConDia(dia, concepto)} · ` : ''}
+            {quincenaPorDia(dia) ? `${etiquetaQuincena(quincenaPorDia(dia))} automático · ` : ''}
             {formatearPeriodo(meses, mesInicio, mesFin === '' ? null : parseInt(mesFin, 10))}
           </p>
         )}
