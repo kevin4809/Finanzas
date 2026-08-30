@@ -1,9 +1,14 @@
+'use client';
+
+import { useState } from 'react';
 import FormularioQuincena from './FormularioQuincena';
+import VistaRapidaMontos from './VistaRapidaMontos';
 
 export default function DetalleQuincenal({
   mesSeleccionado,
   meses,
   datosQuincenales,
+  conceptosSugeridos,
   ingresoMensual,
   onCambiarMes,
   onActualizarIngresoQuincenal,
@@ -12,12 +17,12 @@ export default function DetalleQuincenal({
   onAgregarItemQuincenal,
   onEliminarItemQuincenal,
   onToggleRecurrenteQuincenal,
-  // onActualizarAhorroQuincenal eliminado - ahorro es automático
   formatCOP,
 }) {
-  // Validar que datosQuincenales existe antes de acceder
+  const [vistaRapida, setVistaRapida] = useState(false);
+
   if (!datosQuincenales) {
-    return <div className='p-6 text-black'>Cargando datos...</div>;
+    return <div className='p-6 text-primary'>Cargando datos...</div>;
   }
 
   const datosQuincena1 = datosQuincenales.quincena1;
@@ -39,12 +44,12 @@ export default function DetalleQuincenal({
     onActualizarConceptoQuincenal('quincena2', categoria, idx, valor);
   };
 
-  const handleAgregarItemQ1 = (categoria, concepto, recurrente) => {
-    onAgregarItemQuincenal('quincena1', categoria, concepto, recurrente);
+  const handleAgregarItemQ1 = (categoria, concepto, recurrente, monto) => {
+    onAgregarItemQuincenal('quincena1', categoria, concepto, recurrente, monto);
   };
 
-  const handleAgregarItemQ2 = (categoria, concepto, recurrente) => {
-    onAgregarItemQuincenal('quincena2', categoria, concepto, recurrente);
+  const handleAgregarItemQ2 = (categoria, concepto, recurrente, monto) => {
+    onAgregarItemQuincenal('quincena2', categoria, concepto, recurrente, monto);
   };
 
   const handleEliminarItemQ1 = (categoria, idx) => {
@@ -63,13 +68,16 @@ export default function DetalleQuincenal({
     onToggleRecurrenteQuincenal('quincena2', categoria, idx, recurrente);
   };
 
-
   return (
     <div>
-      <div className='mb-6 flex flex-col sm:flex-row gap-4 sm:gap-6 items-stretch sm:items-center'>
+      <div className='mb-6 flex flex-col sm:flex-row gap-4 sm:gap-6 items-stretch sm:items-center flex-wrap'>
         <div className='flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3'>
-          <label className='font-medium text-black text-sm sm:text-base'>Seleccionar mes:</label>
-          <select value={mesSeleccionado} onChange={(e) => onCambiarMes(parseInt(e.target.value))} className='p-2 border rounded-lg text-black w-full sm:w-auto'>
+          <label className='font-medium text-primary text-sm sm:text-base'>Seleccionar mes:</label>
+          <select
+            value={mesSeleccionado}
+            onChange={(e) => onCambiarMes(parseInt(e.target.value))}
+            className='select-field w-full sm:w-auto font-normal'
+          >
             {meses.map((mes, idx) => (
               <option key={idx} value={idx}>
                 {mes}
@@ -77,38 +85,63 @@ export default function DetalleQuincenal({
             ))}
           </select>
         </div>
-        <div className='flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 bg-blue-50 px-4 py-3 sm:py-2 rounded-lg border-2 border-blue-200'>
-          <label className='font-medium text-black text-sm sm:text-base'>Ingreso mensual total:</label>
-          <span className='text-lg sm:text-xl font-bold text-blue-600'>{formatCOP(ingresoMensual)}</span>
+        <div className='flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 section-blue px-4 py-3 sm:py-2 rounded-lg border-2'>
+          <label className='font-medium text-primary text-sm sm:text-base'>Ingreso mensual total:</label>
+          <span className='text-lg sm:text-xl font-bold text-indigo-600 dark:text-indigo-300'>{formatCOP(ingresoMensual)}</span>
+        </div>
+        <div className='toggle-group ml-auto'>
+          <button
+            onClick={() => setVistaRapida(false)}
+            className={!vistaRapida ? 'toggle-active' : 'toggle-inactive'}
+          >
+            Vista completa
+          </button>
+          <button
+            onClick={() => setVistaRapida(true)}
+            className={vistaRapida ? 'toggle-active' : 'toggle-inactive'}
+          >
+            Solo montos
+          </button>
         </div>
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-        <FormularioQuincena
-          numQuincena={1}
+      {vistaRapida ? (
+        <VistaRapidaMontos
           mesNombre={meses[mesSeleccionado]}
-          datos={datosQuincena1}
-          onActualizarIngreso={(valor) => onActualizarIngresoQuincenal('quincena1', valor)}
-          onActualizarMonto={handleActualizarMontoQ1}
-          onActualizarConcepto={handleActualizarConceptoQ1}
-          onAgregarItem={handleAgregarItemQ1}
-          onEliminarItem={handleEliminarItemQ1}
-          onToggleRecurrente={handleToggleRecurrenteQ1}
+          datosQuincenales={datosQuincenales}
+          onActualizarMonto={onActualizarMontoQuincenal}
           formatCOP={formatCOP}
         />
-        <FormularioQuincena
-          numQuincena={2}
-          mesNombre={meses[mesSeleccionado]}
-          datos={datosQuincena2}
-          onActualizarIngreso={(valor) => onActualizarIngresoQuincenal('quincena2', valor)}
-          onActualizarMonto={handleActualizarMontoQ2}
-          onActualizarConcepto={handleActualizarConceptoQ2}
-          onAgregarItem={handleAgregarItemQ2}
-          onEliminarItem={handleEliminarItemQ2}
-          onToggleRecurrente={handleToggleRecurrenteQ2}
-          formatCOP={formatCOP}
-        />
-      </div>
+      ) : (
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+          <FormularioQuincena
+            numQuincena={1}
+            mesNombre={meses[mesSeleccionado]}
+            datos={datosQuincena1}
+            conceptosSugeridos={conceptosSugeridos}
+            onActualizarIngreso={(valor) => onActualizarIngresoQuincenal('quincena1', valor)}
+            onActualizarMonto={handleActualizarMontoQ1}
+            onActualizarConcepto={handleActualizarConceptoQ1}
+            onAgregarItem={handleAgregarItemQ1}
+            onEliminarItem={handleEliminarItemQ1}
+            onToggleRecurrente={handleToggleRecurrenteQ1}
+            formatCOP={formatCOP}
+          />
+          <FormularioQuincena
+            numQuincena={2}
+            mesNombre={meses[mesSeleccionado]}
+            datos={datosQuincena2}
+            conceptosSugeridos={conceptosSugeridos}
+            onActualizarIngreso={(valor) => onActualizarIngresoQuincenal('quincena2', valor)}
+            onActualizarMonto={handleActualizarMontoQ2}
+            onActualizarConcepto={handleActualizarConceptoQ2}
+            onAgregarItem={handleAgregarItemQ2}
+            onEliminarItem={handleEliminarItemQ2}
+            onToggleRecurrente={handleToggleRecurrenteQ2}
+            formatCOP={formatCOP}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Lock } from 'lucide-react';
+import { Lock, ShieldCheck } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
 
 export default function LoginPIN({ onLoginSuccess }) {
   const [pin, setPin] = useState(['', '', '', '']);
@@ -10,12 +11,10 @@ export default function LoginPIN({ onLoginSuccess }) {
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
   useEffect(() => {
-    // Focus en el primer input al montar
     inputRefs[0].current?.focus();
   }, []);
 
   const handleChange = (index, value) => {
-    // Solo permitir números
     if (value && !/^\d$/.test(value)) return;
 
     const newPin = [...pin];
@@ -23,12 +22,10 @@ export default function LoginPIN({ onLoginSuccess }) {
     setPin(newPin);
     setError('');
 
-    // Auto-focus al siguiente input
     if (value && index < 3) {
       inputRefs[index + 1].current?.focus();
     }
 
-    // Si se completaron los 4 dígitos, intentar login
     if (index === 3 && value) {
       const completePin = [...newPin.slice(0, 3), value].join('');
       handleSubmit(completePin);
@@ -36,7 +33,6 @@ export default function LoginPIN({ onLoginSuccess }) {
   };
 
   const handleKeyDown = (index, e) => {
-    // Backspace: ir al input anterior si está vacío
     if (e.key === 'Backspace' && !pin[index] && index > 0) {
       inputRefs[index - 1].current?.focus();
     }
@@ -75,7 +71,6 @@ export default function LoginPIN({ onLoginSuccess }) {
       const data = await response.json();
 
       if (response.ok) {
-        // Guardar token en localStorage
         localStorage.setItem('auth_token', data.token);
         onLoginSuccess();
       } else {
@@ -83,7 +78,7 @@ export default function LoginPIN({ onLoginSuccess }) {
         setPin(['', '', '', '']);
         inputRefs[0].current?.focus();
       }
-    } catch (error) {
+    } catch {
       setError('Error de conexión');
       setPin(['', '', '', '']);
       inputRefs[0].current?.focus();
@@ -93,14 +88,18 @@ export default function LoginPIN({ onLoginSuccess }) {
   };
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4'>
-      <div className='bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md'>
+    <div className='min-h-screen flex items-center justify-center p-4 relative'>
+      <div className='absolute top-4 right-4 z-10'>
+        <ThemeToggle />
+      </div>
+
+      <div className='login-card'>
         <div className='text-center mb-8'>
-          <div className='inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4'>
-            <Lock className='w-8 h-8 text-blue-600' />
+          <div className='inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 mb-5 shadow-xl shadow-indigo-500/30' style={{ animation: 'float 3s ease-in-out infinite' }}>
+            <Lock className='w-9 h-9 text-white' />
           </div>
-          <h1 className='text-2xl font-bold text-gray-800 mb-2'>Control Financiero</h1>
-          <p className='text-gray-600'>Ingresa tu PIN de 4 dígitos</p>
+          <h1 className='font-display text-3xl font-bold text-primary mb-2'>Control Financiero</h1>
+          <p className='text-muted'>Ingresa tu PIN de 4 dígitos</p>
         </div>
 
         <div className='mb-6'>
@@ -116,7 +115,7 @@ export default function LoginPIN({ onLoginSuccess }) {
                 onChange={(e) => handleChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 disabled={loading}
-                className='w-14 h-14 sm:w-16 sm:h-16 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all disabled:bg-gray-100'
+                className='pin-input disabled:opacity-50'
                 autoComplete='off'
               />
             ))}
@@ -124,22 +123,23 @@ export default function LoginPIN({ onLoginSuccess }) {
         </div>
 
         {error && (
-          <div className='mb-4 p-3 bg-red-50 border border-red-200 rounded-lg'>
-            <p className='text-red-600 text-sm text-center'>{error}</p>
+          <div className='mb-4 p-3 section-red rounded-xl'>
+            <p className='text-rose-600 dark:text-rose-400 text-sm text-center font-medium'>{error}</p>
           </div>
         )}
 
         {loading && (
           <div className='text-center'>
-            <div className='inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent'></div>
-            <p className='text-gray-600 mt-2 text-sm'>Verificando...</p>
+            <div className='loader-ring h-8 w-8 mx-auto'></div>
+            <p className='text-muted mt-3 text-sm'>Verificando...</p>
           </div>
         )}
 
-        <div className='mt-6 pt-6 border-t border-gray-200'>
-          <p className='text-xs text-gray-500 text-center'>
-            Tus datos financieros están protegidos con autenticación
-          </p>
+        <div className='mt-8 pt-6 border-t border-[var(--border)]'>
+          <div className='flex items-center justify-center gap-2 text-muted'>
+            <ShieldCheck size={14} className='text-emerald-500' />
+            <p className='text-xs'>Tus datos financieros están protegidos</p>
+          </div>
         </div>
       </div>
     </div>

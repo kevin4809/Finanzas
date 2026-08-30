@@ -91,3 +91,76 @@ export const propagarRecurrentesDesdeMes = (mesOrigen, mesesDestino) => {
 
   return mesesDestino.map((mes) => propagarRecurrentesEntreMeses(mesOrigen, mes));
 };
+
+export const extraerConceptosUnicos = (meses) => {
+  if (!meses?.length) return [];
+
+  const conceptos = new Set();
+  for (const mes of meses) {
+    for (const quincena of QUINCENAS) {
+      for (const categoria of CATEGORIAS) {
+        for (const item of mes.datosQuincenales[quincena][categoria]) {
+          if (item.concepto?.trim()) conceptos.add(item.concepto.trim());
+        }
+      }
+    }
+  }
+  return Array.from(conceptos).sort((a, b) => a.localeCompare(b, 'es'));
+};
+
+export const extraerSuscripciones = (meses) => {
+  if (!meses?.length) return [];
+
+  const map = new Map();
+  for (const mes of meses) {
+    for (const quincena of QUINCENAS) {
+      for (const categoria of CATEGORIAS) {
+        for (const item of mes.datosQuincenales[quincena][categoria]) {
+          if (!item.recurrente) continue;
+          const key = `${quincena}|${categoria}|${normalizarConcepto(item.concepto)}`;
+          if (!map.has(key)) {
+            map.set(key, { key, concepto: item.concepto, monto: item.monto, quincena, categoria });
+          }
+        }
+      }
+    }
+  }
+  return Array.from(map.values()).sort((a, b) => a.concepto.localeCompare(b.concepto, 'es'));
+};
+
+export const agregarSuscripcionATodosLosMeses = (meses, { concepto, monto, quincena, categoria }) => {
+  return meses.map(clonarMes).map((mes) => {
+    const items = mes.datosQuincenales[quincena][categoria];
+    if (!existeConcepto(items, concepto)) {
+      items.push({ concepto, monto: monto || 0, recurrente: true });
+    }
+    return mes;
+  });
+};
+
+export const eliminarSuscripcionDeTodosLosMeses = (meses, quincena, categoria, concepto) => {
+  const norm = normalizarConcepto(concepto);
+  return meses.map(clonarMes).map((mes) => {
+    mes.datosQuincenales[quincena][categoria] = mes.datosQuincenales[quincena][categoria].filter(
+      (item) => !(item.recurrente && normalizarConcepto(item.concepto) === norm)
+    );
+    return mes;
+  });
+};
+
+export const actualizarSuscripcionEnTodosLosMeses = (meses, quincena, categoria, conceptoAnterior, cambios) => {
+  const normAnterior = normalizarConcepto(conceptoAnterior);
+  return meses.map(clonarMes).map((mes) => {
+    mes.datosQuincenales[quincena][categoria] = mes.datosQuincenales[quincena][categoria].map((item) => {
+      if (item.recurrente && normalizarConcepto(item.concepto) === normAnterior) {
+        return {
+          ...item,
+          concepto: cambios.concepto ?? item.concepto,
+          monto: cambios.monto ?? item.monto,
+        };
+      }
+      return item;
+    });
+    return mes;
+  });
+};

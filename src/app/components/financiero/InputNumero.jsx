@@ -10,7 +10,7 @@ function formatearNumero(num) {
   return numero.toLocaleString('es-CO', { maximumFractionDigits: 0 });
 }
 
-export default function InputNumero({ valor, onChange, placeholder = '0', className = '' }) {
+export default function InputNumero({ valor, onChange, placeholder = '0', className = '', onEnterKey, inputClassName = 'monto-input' }) {
   const [valorFormateado, setValorFormateado] = useState(() => formatearNumero(valor));
 
   // Actualizar cuando cambie el valor externo
@@ -42,14 +42,28 @@ export default function InputNumero({ valor, onChange, placeholder = '0', classN
     setValorFormateado(formatearNumero(valor));
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const inputs = Array.from(document.querySelectorAll(`input.${inputClassName}`));
+      const currentIndex = inputs.indexOf(e.target);
+      if (currentIndex !== -1 && currentIndex < inputs.length - 1) {
+        inputs[currentIndex + 1].focus();
+        inputs[currentIndex + 1].select();
+      }
+      onEnterKey?.(e);
+    }
+  };
+
   return (
     <input
       type='text'
       value={valorFormateado}
       onChange={handleChange}
       onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
       placeholder={placeholder}
-      className={className}
+      className={`${inputClassName} ${className}`}
     />
   );
 }

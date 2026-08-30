@@ -1,24 +1,24 @@
-import { Download, Save, Upload } from 'lucide-react';
+import { Download, Save, Upload, CloudUpload } from 'lucide-react';
 
-export default function BarraAcciones({ onExportarCSV, onGuardarDatos, onCargarDatos }) {
+export default function BarraAcciones({ onExportarCSV, onGuardarDatos, onCargarDatos, onGuardarManual }) {
   return (
     <div className='flex gap-2 mb-6 flex-wrap'>
-      <button
-        onClick={onExportarCSV}
-        className='flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition'
-      >
-        <Download size={20} />
+      <button onClick={onExportarCSV} className='btn-success'>
+        <Download size={18} />
         Exportar CSV
       </button>
-      <button
-        onClick={onGuardarDatos}
-        className='flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition'
-      >
-        <Save size={20} />
-        Guardar Datos
+      {onGuardarManual && (
+        <button onClick={onGuardarManual} className='btn-indigo' title='Ctrl+S'>
+          <CloudUpload size={18} />
+          Guardar ahora
+        </button>
+      )}
+      <button onClick={onGuardarDatos} className='btn-primary'>
+        <Save size={18} />
+        Backup JSON
       </button>
-      <label className='flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition cursor-pointer'>
-        <Upload size={20} />
+      <label className='btn-ghost cursor-pointer'>
+        <Upload size={18} />
         Cargar Datos
         <input type='file' accept='.json' onChange={onCargarDatos} className='hidden' />
       </label>

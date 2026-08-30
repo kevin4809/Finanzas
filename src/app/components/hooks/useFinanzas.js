@@ -4,6 +4,11 @@ import {
   propagarRecurrentesAMesesSiguientes,
   propagarRecurrentesDesdeMes,
   actualizarMontoRecurrenteEnMesesSiguientes,
+  extraerConceptosUnicos,
+  extraerSuscripciones,
+  agregarSuscripcionATodosLosMeses,
+  eliminarSuscripcionDeTodosLosMeses,
+  actualizarSuscripcionEnTodosLosMeses,
 } from './suscripcionesRecurrentes';
 
 const INGRESO_MENSUAL_DEFECTO = 4000000;
@@ -183,6 +188,23 @@ export const useFinanzas = () => {
 
   const mesData = datosResumen[mesSeleccionado];
 
+  const conceptosSugeridos = useMemo(() => {
+    const meses = datosAnios[anioSeleccionado]?.meses;
+    return meses ? extraerConceptosUnicos(meses) : [];
+  }, [datosAnios, anioSeleccionado]);
+
+  const suscripciones = useMemo(() => {
+    const meses = datosAnios[anioSeleccionado]?.meses;
+    return meses ? extraerSuscripciones(meses) : [];
+  }, [datosAnios, anioSeleccionado]);
+
+  const guardarManualmente = () => {
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    if (datosAnios[anioSeleccionado]?.meses) {
+      guardarEnMongoDB(anioSeleccionado, datosAnios[anioSeleccionado].meses);
+    }
+  };
+
   const actualizarIngresoQuincenal = (quincena, nuevoIngreso) => {
     setDatosAnios((prev) => {
       const anio = { ...prev[anioSeleccionado] };
@@ -231,7 +253,7 @@ export const useFinanzas = () => {
 
   // actualizarAhorroQuincenal eliminado - el ahorro se calcula automáticamente
 
-  const agregarItem = (quincena, categoria, concepto, recurrente = false) => {
+  const agregarItem = (quincena, categoria, concepto, recurrente = false, monto = 0) => {
     setDatosAnios((prev) => {
       const anio = { ...prev[anioSeleccionado] };
       anio.meses = [...anio.meses];
@@ -239,13 +261,41 @@ export const useFinanzas = () => {
       mes.datosQuincenales = { ...mes.datosQuincenales };
       mes.datosQuincenales[quincena] = { ...mes.datosQuincenales[quincena] };
       mes.datosQuincenales[quincena][categoria] = [...mes.datosQuincenales[quincena][categoria]];
-      mes.datosQuincenales[quincena][categoria].push({ concepto, monto: 0, recurrente });
+      mes.datosQuincenales[quincena][categoria].push({
+        concepto,
+        monto: parseFloat(monto) || 0,
+        recurrente,
+      });
       anio.meses[mesSeleccionado] = mes;
 
       if (recurrente) {
         anio.meses = propagarRecurrentesAMesesSiguientes(anio.meses, mesSeleccionado);
       }
 
+      return { ...prev, [anioSeleccionado]: anio };
+    });
+  };
+
+  const agregarSuscripcion = ({ concepto, monto, quincena, categoria }) => {
+    setDatosAnios((prev) => {
+      const anio = { ...prev[anioSeleccionado] };
+      anio.meses = agregarSuscripcionATodosLosMeses(anio.meses, { concepto, monto, quincena, categoria });
+      return { ...prev, [anioSeleccionado]: anio };
+    });
+  };
+
+  const actualizarSuscripcion = (quincena, categoria, conceptoAnterior, cambios) => {
+    setDatosAnios((prev) => {
+      const anio = { ...prev[anioSeleccionado] };
+      anio.meses = actualizarSuscripcionEnTodosLosMeses(anio.meses, quincena, categoria, conceptoAnterior, cambios);
+      return { ...prev, [anioSeleccionado]: anio };
+    });
+  };
+
+  const eliminarSuscripcion = (quincena, categoria, concepto) => {
+    setDatosAnios((prev) => {
+      const anio = { ...prev[anioSeleccionado] };
+      anio.meses = eliminarSuscripcionDeTodosLosMeses(anio.meses, quincena, categoria, concepto);
       return { ...prev, [anioSeleccionado]: anio };
     });
   };
@@ -369,6 +419,18 @@ export const useFinanzas = () => {
     };
   }, [datosAnios, anioSeleccionado]);
 
+  // Atajo Ctrl+S para guardar manualmente
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        guardarManualmente();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [anioSeleccionado, datosAnios]);
+
   const formatCOP = (num) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -470,6 +532,8 @@ export const useFinanzas = () => {
     // Estado
     datosResumen,
     datosQuincenales: mesData?.datosQuincenales,
+    conceptosSugeridos,
+    suscripciones,
     mesSeleccionado,
     anioSeleccionado,
     aniosDisponibles: aniosDisponiblesDB.length > 0 ? aniosDisponiblesDB : Object.keys(datosAnios).map(Number).sort(),
@@ -490,6 +554,10 @@ export const useFinanzas = () => {
     agregarItem,
     eliminarItem,
     toggleRecurrente,
+    agregarSuscripcion,
+    actualizarSuscripcion,
+    eliminarSuscripcion,
+    guardarManualmente,
     formatCOP,
     exportarACSV,
     guardarDatos,

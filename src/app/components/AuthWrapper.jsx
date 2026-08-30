@@ -59,7 +59,7 @@ export default function AuthWrapper({ children }) {
   // Mostrar la aplicación con botón de logout
   return (
     <div>
-      <div className='bg-gray-800 text-white px-4 py-2 flex justify-between items-center'>
+      <div className='bg-gray-800 dark:bg-slate-950 text-white px-4 py-2 flex justify-between items-center border-b border-slate-700'>
         <h1 className='text-sm font-semibold'>Control Financiero</h1>
         <button
           onClick={handleLogout}
