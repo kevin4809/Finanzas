@@ -61,7 +61,19 @@ body {
   border-radius: 50%;
   filter: blur(80px);
   opacity: 0.5;
-  animation: aurora-drift 18s ease-in-out infinite alternate;
+  will-change: transform;
+  /* Se anima solo unos ciclos al cargar y luego se asienta.
+     Un fondo en movimiento perpetuo detrás de tantas tarjetas con
+     backdrop-blur obliga al navegador a recomponer ese blur en cada
+     frame indefinidamente: es el mayor culpable de los tirones. */
+  animation: aurora-drift 18s ease-in-out 3 alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-bg::before,
+  .app-bg::after {
+    animation: none;
+  }
 }
 
 .app-bg::before {
@@ -141,6 +153,27 @@ body {
   }
 
   .dark .card {
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.2),
+      0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Igual que .card pero sin backdrop-blur: pensado para el contenedor
+     grande que envuelve el contenido de cada pestaña (<main>). --surface
+     ya es casi opaco (72-75% alfa), así que ahí el blur aporta muy poco
+     visualmente, pero en una superficie tan alta obliga al navegador a
+     recomponerlo en cada frame de scroll — es el causante directo del
+     scroll lento en Detalle Quincenal, la pestaña con más contenido. */
+  .panel-solid {
+    @apply rounded-2xl border;
+    background: var(--surface);
+    border-color: var(--border);
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.04),
+      0 8px 32px rgba(99, 102, 241, 0.06);
+  }
+
+  .dark .panel-solid {
     box-shadow:
       0 1px 2px rgba(0, 0, 0, 0.2),
       0 8px 32px rgba(0, 0, 0, 0.3);

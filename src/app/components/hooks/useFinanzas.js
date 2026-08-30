@@ -11,9 +11,17 @@ import {
   actualizarSuscripcionEnTodosLosMeses,
   migrarRangosSuscripciones,
 } from './suscripcionesRecurrentes';
-import { unificarConceptosEnMeses, quincenaPorConcepto } from '@/lib/conceptosTexto';
+import { unificarConceptosEnMeses, quincenaPorConcepto, migrarItemsPorDiaQuincena } from '@/lib/conceptosTexto';
 
 const INGRESO_MENSUAL_DEFECTO = 4000000;
+
+// Instancia única y reutilizada: crear un Intl.NumberFormat es costoso y
+// formatCOP se llama decenas de veces por render (tablas, tarjetas de análisis).
+const FORMATEADOR_COP = new Intl.NumberFormat('es-CO', {
+  style: 'currency',
+  currency: 'COP',
+  minimumFractionDigits: 0,
+});
 
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
@@ -71,7 +79,8 @@ const migrarDatosConCategorias = (meses) => {
 const migrarDatos = (meses) => {
   const conCategorias = migrarDatosConCategorias(meses);
   const unificados = unificarConceptosEnMeses(conCategorias).meses;
-  return migrarRangosSuscripciones(unificados);
+  const porDia = migrarItemsPorDiaQuincena(unificados);
+  return migrarRangosSuscripciones(porDia);
 };
 
 export const useFinanzas = () => {
@@ -111,12 +120,18 @@ export const useFinanzas = () => {
       const data = await response.json();
 
       if (data.datos && data.datos.length > 0) {
+        const snapshotAntes = JSON.stringify(data.datos);
         const mesesMigrados = migrarDatos(data.datos);
         const mesesSincronizados = sincronizarRecurrentesEnAnio(mesesMigrados);
         setDatosAnios((prev) => ({
           ...prev,
           [anio]: { anio, meses: mesesSincronizados },
         }));
+
+        if (JSON.stringify(mesesSincronizados) !== snapshotAntes) {
+          await guardarEnMongoDB(anio, mesesSincronizados);
+        }
+
         return true;
       } else {
         // No hay datos, crear estructura inicial
@@ -482,13 +497,7 @@ export const useFinanzas = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [anioSeleccionado, datosAnios]);
 
-  const formatCOP = (num) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(num);
-  };
+  const formatCOP = (num) => FORMATEADOR_COP.format(num);
 
   const exportarACSV = () => {
     let csvContent = `CONTROL FINANCIERO - AÑO ${anioSeleccionado}\n\n`;

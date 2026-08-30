@@ -159,10 +159,10 @@ export default function PanelSuscripciones({
   const [dia, setDia] = useState('');
   const [concepto, setConcepto] = useState('');
   const [monto, setMonto] = useState(0);
-  const [quincena, setQuincena] = useState('quincena1');
   const [categoria, setCategoria] = useState('obligaciones');
   const [mesInicio, setMesInicio] = useState(mesInicioDefecto);
   const [mesFin, setMesFin] = useState('');
+  const [error, setError] = useState('');
 
   const mesActual = anio === new Date().getFullYear() ? new Date().getMonth() : null;
   const suscripcionesActivasMes = mesActual !== null
@@ -172,15 +172,22 @@ export default function PanelSuscripciones({
 
   const handleCambioDia = (valor) => {
     setDia(valor);
-    const auto = quincenaPorDia(valor);
-    if (auto) setQuincena(auto);
+    setError('');
   };
 
   const handleAgregar = () => {
     const conceptoFinal = formatearConceptoConDia(dia, concepto);
+    const quincenaFinal = quincenaPorDia(dia);
+    if (!concepto.trim()) {
+      setError('Escribe un concepto.');
+      return;
+    }
+    if (!quincenaFinal) {
+      setError('Ingresa el día del mes (1-31) para ubicarlo en Q1 o Q2.');
+      return;
+    }
     if (!conceptoFinal) return;
     const fin = mesFin === '' ? null : parseInt(mesFin, 10);
-    const quincenaFinal = quincenaPorDia(dia) ?? quincena;
     onAgregar({
       concepto: conceptoFinal,
       monto,
@@ -193,6 +200,7 @@ export default function PanelSuscripciones({
     setConcepto('');
     setMonto(0);
     setMesFin('');
+    setError('');
   };
 
   return (
@@ -201,7 +209,7 @@ export default function PanelSuscripciones({
         <h3 className='font-bold text-primary mb-1'>Suscripciones {anio}</h3>
         <p className='text-sm text-muted'>
           Elige <strong>Desde</strong> cuándo empieza. <strong>Hasta</strong> es opcional: si no lo llenas, la
-          suscripción sigue activa mes a mes. Pon <strong>Hasta</strong> solo cuando quieras indicar que terminó.
+          suscripción sigue activa mes a mes. El <strong>día</strong> define la quincena (1-15 → Q1, 16-31 → Q2).
         </p>
         <p className='text-lg font-bold text-blue-700 dark:text-blue-400 mt-2'>
           {mesActual !== null
@@ -238,10 +246,6 @@ export default function PanelSuscripciones({
             ))}
           </datalist>
           <InputNumero valor={monto} onChange={setMonto} className='input-field text-right' />
-          <select value={quincena} onChange={(e) => setQuincena(e.target.value)} className='input-field font-normal'>
-            <option value='quincena1'>Quincena 1 (días 1-15)</option>
-            <option value='quincena2'>Quincena 2 (días 16-31)</option>
-          </select>
           <select value={categoria} onChange={(e) => setCategoria(e.target.value)} className='input-field font-normal'>
             <option value='obligaciones'>Obligación</option>
             <option value='gastosPersonales'>Gasto Personal</option>
@@ -260,10 +264,11 @@ export default function PanelSuscripciones({
             />
           </div>
         </div>
+        {error && <p className='text-xs text-red-600 dark:text-red-400 font-medium mt-2'>{error}</p>}
         {concepto.trim() && (
           <p className='text-xs text-muted mt-2'>
             {dia ? `Se guardará como: ${formatearConceptoConDia(dia, concepto)} · ` : ''}
-            {quincenaPorDia(dia) ? `${etiquetaQuincena(quincenaPorDia(dia))} automático · ` : ''}
+            {quincenaPorDia(dia) ? `${etiquetaQuincena(quincenaPorDia(dia))} automático · ` : 'Ingresa el día · '}
             {formatearPeriodo(meses, mesInicio, mesFin === '' ? null : parseInt(mesFin, 10))}
           </p>
         )}

@@ -33,7 +33,7 @@ export default function SeccionGastos({
   colorClase,
   formatCOP,
   tipoCategoria = 'gastosPersonales',
-  quincenaActual = 'quincena1',
+  mostrarAgregar = true,
 }) {
   const [nuevoDia, setNuevoDia] = useState('');
   const [nuevoConcepto, setNuevoConcepto] = useState('');
@@ -45,7 +45,7 @@ export default function SeccionGastos({
 
   const handleAgregar = () => {
     const conceptoFinal = formatearConceptoConDia(nuevoDia, nuevoConcepto);
-    if (conceptoFinal) {
+    if (conceptoFinal && onAgregar) {
       onAgregar(conceptoFinal, nuevoMonto, nuevaCategoria, nuevoDia);
       setNuevoDia('');
       setNuevoConcepto('');
@@ -55,7 +55,6 @@ export default function SeccionGastos({
   };
 
   const quincenaDestino = quincenaPorDia(nuevoDia);
-  const vaAOtraQuincena = quincenaDestino && quincenaDestino !== quincenaActual;
 
   return (
     <div className={`gastos-panel ${colorClase} p-3 sm:p-4 rounded-lg min-w-0 overflow-hidden`}>
@@ -114,6 +113,7 @@ export default function SeccionGastos({
         ))}
       </div>
 
+      {mostrarAgregar && (
       <div className='gasto-add-panel'>
         <div className='gasto-add-grid'>
           <SelectCategoria
@@ -190,21 +190,19 @@ export default function SeccionGastos({
         </div>
 
         <p className='gasto-add-extra mt-2 text-[11px] text-muted leading-snug'>
-          {nuevoDia && nuevoConcepto.trim() ? (
+          {nuevoDia && nuevoConcepto.trim() && quincenaDestino ? (
             <>
-              → {formatearConceptoConDia(nuevoDia, nuevoConcepto)}
-              {vaAOtraQuincena && (
-                <span className='text-indigo-600 dark:text-indigo-400 font-medium'>
-                  {' '}
-                  · se agregará en {etiquetaQuincena(quincenaDestino)}
-                </span>
-              )}
+              → {formatearConceptoConDia(nuevoDia, nuevoConcepto)} ·{' '}
+              <span className='text-indigo-600 dark:text-indigo-400 font-medium'>
+                {etiquetaQuincena(quincenaDestino)} automático
+              </span>
             </>
           ) : (
             'Día 1-15 → Q1 · 16-31 → Q2 · Enter para agregar'
           )}
         </p>
       </div>
+      )}
 
       <div className='border-t border-gray-200/80 dark:border-slate-600/80 pt-2.5 mt-2 flex justify-between items-center gap-2'>
         <span className='text-primary text-sm font-semibold'>Subtotal {titulo}</span>

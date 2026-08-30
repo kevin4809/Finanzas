@@ -41,6 +41,38 @@ export const quincenaPorConcepto = (concepto) => {
 
 export const etiquetaQuincena = (quincena) => (quincena === 'quincena2' ? 'Q2' : 'Q1');
 
+/** Reubica ítems según el día en el concepto (1-15 → Q1, 16-31 → Q2). Sin día, se dejan donde están. */
+export const migrarItemsPorDiaQuincena = (meses) => {
+  if (!meses?.length) return meses;
+
+  return meses.map((mes) => {
+    const vaciarListas = (quincenaKey) => ({
+      ...mes.datosQuincenales[quincenaKey],
+      obligaciones: [],
+      gastosPersonales: [],
+    });
+
+    const destinos = {
+      quincena1: vaciarListas('quincena1'),
+      quincena2: vaciarListas('quincena2'),
+    };
+
+    for (const quincena of QUINCENAS) {
+      for (const categoria of CATEGORIAS) {
+        for (const item of mes.datosQuincenales?.[quincena]?.[categoria] ?? []) {
+          const destino = quincenaPorConcepto(item.concepto) ?? quincena;
+          destinos[destino][categoria].push(item);
+        }
+      }
+    }
+
+    return {
+      ...mes,
+      datosQuincenales: destinos,
+    };
+  });
+};
+
 /** Clave para agrupar variantes similares (mayúsculas, acentos, "de", etc.) */
 export const claveAgrupacionConcepto = (concepto) => {
   const base = extraerBaseConcepto(concepto);

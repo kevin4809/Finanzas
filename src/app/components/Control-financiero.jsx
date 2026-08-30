@@ -140,7 +140,7 @@ const ControlFinanciero = () => {
         ))}
       </nav>
 
-      <main className='card p-4 sm:p-6'>
+      <main className='panel-solid p-4 sm:p-6'>
         {activeSheet === 'resumen' && <ResumenMensual datosResumen={datosResumen} formatCOP={formatCOP} />}
 
         {activeSheet === 'quincenal' && (

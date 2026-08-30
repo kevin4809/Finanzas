@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import FormularioQuincena from './FormularioQuincena';
+import FormularioAgregarGasto from './FormularioAgregarGasto';
 import VistaRapidaMontos from './VistaRapidaMontos';
 import AnalisisMesQuincenal from './AnalisisMesQuincenal';
-import { quincenaPorDia } from '../hooks/suscripcionesRecurrentes';
+import { quincenaPorDia } from '@/lib/conceptosTexto';
 
 export default function DetalleQuincenal({
   mesSeleccionado,
@@ -31,11 +32,10 @@ export default function DetalleQuincenal({
   const datosQuincena1 = datosQuincenales.quincena1;
   const datosQuincena2 = datosQuincenales.quincena2;
 
-  const resolverQuincena = (dia, quincenaForm) => quincenaPorDia(dia) ?? quincenaForm;
-
-  const handleAgregarItem = (quincenaForm) => (categoria, concepto, monto, categoriaItem, dia) => {
-    const destino = resolverQuincena(dia, quincenaForm);
-    onAgregarItemQuincenal(destino, categoria, concepto, monto, categoriaItem);
+  const handleAgregarUnificado = (seccion, concepto, monto, categoriaItem, dia) => {
+    const destino = quincenaPorDia(dia);
+    if (!destino) return;
+    onAgregarItemQuincenal(destino, seccion, concepto, monto, categoriaItem);
   };
 
   const handleActualizarMontoQ1 = (categoria, idx, valor) => {
@@ -61,9 +61,6 @@ export default function DetalleQuincenal({
   const handleActualizarCategoriaQ2 = (categoria, idx, valor) => {
     onActualizarCategoriaQuincenal('quincena2', categoria, idx, valor);
   };
-
-  const handleAgregarItemQ1 = handleAgregarItem('quincena1');
-  const handleAgregarItemQ2 = handleAgregarItem('quincena2');
 
   const handleEliminarItemQ1 = (categoria, idx) => {
     onEliminarItemQuincenal('quincena1', categoria, idx);
@@ -118,36 +115,40 @@ export default function DetalleQuincenal({
           formatCOP={formatCOP}
         />
       ) : (
-        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0'>
-          <FormularioQuincena
-            numQuincena={1}
-            quincenaKey='quincena1'
+        <>
+          <FormularioAgregarGasto
             mesNombre={meses[mesSeleccionado]}
-            datos={datosQuincena1}
             conceptosSugeridos={conceptosSugeridos}
-            onActualizarIngreso={(valor) => onActualizarIngresoQuincenal('quincena1', valor)}
-            onActualizarMonto={handleActualizarMontoQ1}
-            onActualizarConcepto={handleActualizarConceptoQ1}
-            onActualizarCategoria={handleActualizarCategoriaQ1}
-            onAgregarItem={handleAgregarItemQ1}
-            onEliminarItem={handleEliminarItemQ1}
-            formatCOP={formatCOP}
+            onAgregar={handleAgregarUnificado}
           />
-          <FormularioQuincena
-            numQuincena={2}
-            quincenaKey='quincena2'
-            mesNombre={meses[mesSeleccionado]}
-            datos={datosQuincena2}
-            conceptosSugeridos={conceptosSugeridos}
-            onActualizarIngreso={(valor) => onActualizarIngresoQuincenal('quincena2', valor)}
-            onActualizarMonto={handleActualizarMontoQ2}
-            onActualizarConcepto={handleActualizarConceptoQ2}
-            onActualizarCategoria={handleActualizarCategoriaQ2}
-            onAgregarItem={handleAgregarItemQ2}
-            onEliminarItem={handleEliminarItemQ2}
-            formatCOP={formatCOP}
-          />
-        </div>
+
+          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0'>
+            <FormularioQuincena
+              numQuincena={1}
+              mesNombre={meses[mesSeleccionado]}
+              datos={datosQuincena1}
+              conceptosSugeridos={conceptosSugeridos}
+              onActualizarIngreso={(valor) => onActualizarIngresoQuincenal('quincena1', valor)}
+              onActualizarMonto={handleActualizarMontoQ1}
+              onActualizarConcepto={handleActualizarConceptoQ1}
+              onActualizarCategoria={handleActualizarCategoriaQ1}
+              onEliminarItem={handleEliminarItemQ1}
+              formatCOP={formatCOP}
+            />
+            <FormularioQuincena
+              numQuincena={2}
+              mesNombre={meses[mesSeleccionado]}
+              datos={datosQuincena2}
+              conceptosSugeridos={conceptosSugeridos}
+              onActualizarIngreso={(valor) => onActualizarIngresoQuincenal('quincena2', valor)}
+              onActualizarMonto={handleActualizarMontoQ2}
+              onActualizarConcepto={handleActualizarConceptoQ2}
+              onActualizarCategoria={handleActualizarCategoriaQ2}
+              onEliminarItem={handleEliminarItemQ2}
+              formatCOP={formatCOP}
+            />
+          </div>
+        </>
       )}
 
       <AnalisisMesQuincenal
